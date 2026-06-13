@@ -77,7 +77,6 @@ textarea { resize: vertical; }
 .backup-tag { display: inline-block; background: #e6f4d7; color: #2d6a0a; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
 .restore-drop { border: 2px dashed #e0b8cc; border-radius: 10px; padding: 1.5rem; text-align: center; color: #a0607a; font-size: 13px; cursor: pointer; transition: all 0.15s; }
 .restore-drop:hover { border-color: #e0006e; background: #fdf8fa; }
-/* Indicador de sincronização Firebase */
 #sync-indicator { position: fixed; bottom: 16px; right: 16px; background: #fff; border: 1px solid #f0d6e0; border-radius: 99px; padding: 6px 14px; font-size: 12px; color: #a0607a; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(180,0,110,0.08); z-index: 200; transition: all 0.3s; }
 #sync-indicator.syncing { border-color: #e0006e; color: #e0006e; }
 #sync-indicator.error { border-color: #a32d2d; color: #a32d2d; }
@@ -215,7 +214,7 @@ textarea { resize: vertical; }
         <div class="card-title">Sobre o sistema</div>
         <p style="font-size:13px;color:#a0607a;line-height:1.8">
           <strong style="color:#b5006e">PinkEvent PRO V1.0</strong> salva todos os dados automaticamente na nuvem via Firebase.<br>
-          Use o botão <strong style="color:#b5006e">Backup / Restaurar</strong> na barra lateral para proteger seus dados e transferi-los entre computadores.
+          Use o botão <strong style="color:#b5006e">Backup / Restaurar</strong> na barra lateral para proteger seus dados.
         </p>
       </div>
     </div>
@@ -226,7 +225,7 @@ textarea { resize: vertical; }
 <!-- Indicador de sync -->
 <div id="sync-indicator">
   <div id="sync-dot"></div>
-  <span id="sync-text">Conectado</span>
+  <span id="sync-text">Conectando...</span>
 </div>
 
 <!-- MODAL BACKUP -->
@@ -238,21 +237,21 @@ textarea { resize: vertical; }
       <i class="ti ti-file-download"></i>
       <div>
         <div class="backup-option-title">Baixar arquivo de backup <span class="backup-tag">RECOMENDADO</span></div>
-        <div class="backup-option-desc">Salva um arquivo <strong>.json</strong> no seu computador com todos os dados. Para restaurar, use a opção abaixo. Funciona sem internet.</div>
+        <div class="backup-option-desc">Salva um arquivo <strong>.json</strong> no seu computador com todos os dados.</div>
       </div>
     </div>
     <div class="backup-option" onclick="backupEmail('gmail')">
       <i class="ti ti-mail"></i>
       <div>
         <div class="backup-option-title">Enviar por e-mail (Gmail)</div>
-        <div class="backup-option-desc">Abre o Gmail com os dados no corpo do e-mail. Você escolhe para quem enviar e clica em Enviar. Funciona como um e-mail comum.</div>
+        <div class="backup-option-desc">Abre o Gmail com os dados no corpo do e-mail.</div>
       </div>
     </div>
     <div class="backup-option" onclick="backupEmail('outlook')">
       <i class="ti ti-brand-windows"></i>
       <div>
         <div class="backup-option-title">Enviar por e-mail (Outlook / outros)</div>
-        <div class="backup-option-desc">Abre seu e-mail padrão (Outlook, Yahoo etc.) com os dados prontos para enviar. Basta clicar em Enviar.</div>
+        <div class="backup-option-desc">Abre seu e-mail padrão com os dados prontos para enviar.</div>
       </div>
     </div>
     <div class="nav-divider" style="margin:14px 0"></div>
@@ -260,7 +259,7 @@ textarea { resize: vertical; }
     <div class="restore-drop" onclick="document.getElementById('restore-input').click()">
       <i class="ti ti-upload" style="font-size:28px;color:#e0006e;display:block;margin-bottom:6px"></i>
       Clique aqui para selecionar o arquivo <strong>.json</strong> de backup<br>
-      <span style="font-size:11px;color:#c0a0b0;margin-top:4px;display:block">Atenção: os dados atuais serão substituídos pelos dados do backup.</span>
+      <span style="font-size:11px;color:#c0a0b0;margin-top:4px;display:block">Atenção: os dados atuais serão substituídos.</span>
     </div>
     <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restaurarBackup(event)">
     <div id="backup-msg" style="margin-top:10px;font-size:13px;display:none"></div>
@@ -365,110 +364,38 @@ textarea { resize: vertical; }
   </div>
 </div>
 
-<!-- ===================== FIREBASE SDK ===================== -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  // ── Configuração Firebase ──────────────────────────────
-  const firebaseConfig = {
-    apiKey: "AIzaSyADSIb0bunxunGDhIYi13AGUBoGsv0kA-A",
-    authDomain: "pinkeventpro.firebaseapp.com",
-    projectId: "pinkeventpro",
-    storageBucket: "pinkeventpro.firebasestorage.app",
-    messagingSenderId: "649015393375",
-    appId: "1:649015393375:web:b19b6c8b1489b9df5fefea"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-  const DOC_REF = doc(db, "pinkevent", "dados");
-
-  // ── Indicador visual de sync ───────────────────────────
-  function setSyncStatus(status, text) {
-    var el = document.getElementById('sync-indicator');
-    var dot = document.getElementById('sync-dot');
-    var txt = document.getElementById('sync-text');
-    el.className = '';
-    if (status === 'syncing') el.classList.add('syncing');
-    if (status === 'error')   el.classList.add('error');
-    txt.textContent = text;
-  }
-
-  // ── Carregar dados do Firestore ────────────────────────
-  async function loadFromFirestore() {
-    setSyncStatus('syncing', 'Carregando...');
-    try {
-      var snap = await getDoc(DOC_REF);
-      if (snap.exists()) {
-        var dados = snap.data().state;
-        if (dados) {
-          window.state = JSON.parse(dados);
-          // garante arrays caso falte alguma chave
-          window.state.eventos    = window.state.eventos    || [];
-          window.state.orcPrev    = window.state.orcPrev    || [];
-          window.state.orcReal    = window.state.orcReal    || [];
-          window.state.atividades = window.state.atividades || [];
-          window.state.checklist  = window.state.checklist  || [];
-        }
-      }
-      setSyncStatus('ok', 'Conectado');
-    } catch(e) {
-      setSyncStatus('error', 'Offline — dados locais');
-      console.warn('Firebase load error:', e);
-      // fallback localStorage
-      try { var s = localStorage.getItem('pinkevent_pro_v1'); if(s) window.state = JSON.parse(s); } catch(e2){}
-    }
-    // Inicializa checklist padrão se vazio
-    if (!window.state.checklist.length) {
-      window.state.checklist = window._defaultChecklist.map(function(t){ return {texto:t, ok:false}; });
-      window.save();
-    }
-    renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist();
-  }
-
-  // ── Salvar dados no Firestore ──────────────────────────
-  window.save = async function() {
-    setSyncStatus('syncing', 'Salvando...');
-    try {
-      await setDoc(DOC_REF, { state: JSON.stringify(window.state), updated: new Date().toISOString() });
-      // também salva local como fallback
-      localStorage.setItem('pinkevent_pro_v1', JSON.stringify(window.state));
-      setSyncStatus('ok', 'Salvo ✓');
-      setTimeout(function(){ setSyncStatus('ok', 'Conectado'); }, 2000);
-    } catch(e) {
-      setSyncStatus('error', 'Erro ao salvar');
-      // fallback localStorage
-      try { localStorage.setItem('pinkevent_pro_v1', JSON.stringify(window.state)); } catch(e2){}
-      console.warn('Firebase save error:', e);
-    }
-  };
-
-  // Aguarda DOM + inicia carga
-  document.addEventListener('DOMContentLoaded', loadFromFirestore);
-</script>
-
-<!-- ===================== APP LOGIC (inalterada) ===================== -->
+<!-- ===================== APP LOGIC ===================== -->
 <script>
-var APP_KEY = 'pinkevent_pro_v1';
-var state = { eventos: [], orcPrev: [], orcReal: [], atividades: [], checklist: [] };
+// ── Estado global ──────────────────────────────────────
+window.state = { eventos: [], orcPrev: [], orcReal: [], atividades: [], checklist: [] };
 
-// Expõe state globalmente para o módulo Firebase acessar
-window.state = state;
+window._defaultChecklist = [
+  'Confirmar local e contrato','Verificar equipamentos audiovisuais',
+  'Enviar convites e confirmações','Definir cardápio e fornecedor de alimentação',
+  'Preparar material gráfico','Testar tecnologia e internet no local',
+  'Briefing da equipe','Contratar segurança e recepcionistas',
+  'Confirmar transporte e estacionamento','Preparar credenciais dos participantes'
+];
 
-// save() é sobrescrita pelo módulo Firebase acima.
-// Esta versão é apenas fallback caso o módulo ainda não tenha carregado.
-if (typeof window.save === 'undefined') {
-  window.save = function() {
-    try { localStorage.setItem(APP_KEY, JSON.stringify(window.state)); } catch(e) { alert('Erro ao salvar.'); }
-  };
-}
+// save() — será sobrescrita pelo módulo Firebase após carregamento
+window.save = function() {
+  try { localStorage.setItem('pinkevent_pro_v1', JSON.stringify(window.state)); } catch(e) {}
+};
+
+// ── Sync indicator ─────────────────────────────────────
+window.setSyncStatus = function(status, text) {
+  var el = document.getElementById('sync-indicator');
+  var txt = document.getElementById('sync-text');
+  el.className = '';
+  if (status === 'syncing') el.classList.add('syncing');
+  if (status === 'error')   el.classList.add('error');
+  txt.textContent = text;
+};
 
 // ==================== BACKUP ====================
 function backupJSON() {
   var data = { versao: '1.0', sistema: 'PinkEvent PRO', data: new Date().toISOString(), dados: window.state };
-  var json = JSON.stringify(data, null, 2);
-  var blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8;' });
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   var hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
@@ -480,45 +407,40 @@ function backupJSON() {
 
 function backupEmail(tipo) {
   var hoje = new Date().toLocaleDateString('pt-BR');
-  var totalEv = window.state.eventos.length;
-  var totalAtiv = window.state.atividades.length;
-  var totalPrev = window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0);
-  var totalReal = window.state.orcReal.reduce(function(a,x){return a+x.valor;},0);
   var json = JSON.stringify(window.state);
   var resumo = 'PinkEvent PRO V1.0 — Backup em ' + hoje + '\n\n'
-    + 'RESUMO:\n'
-    + '• Eventos: ' + totalEv + '\n'
-    + '• Atividades: ' + totalAtiv + '\n'
-    + '• Orçamento previsto: R$ ' + totalPrev.toFixed(2) + '\n'
-    + '• Orçamento realizado: R$ ' + totalReal.toFixed(2) + '\n\n'
-    + '--- DADOS COMPLETOS (cole em um arquivo .json para restaurar) ---\n\n'
+    + 'Eventos: ' + window.state.eventos.length + '\n'
+    + 'Atividades: ' + window.state.atividades.length + '\n\n'
+    + '--- DADOS ---\n\n'
     + json.substring(0, 1800)
-    + (json.length > 1800 ? '\n\n[...dados truncados — use a opção "Baixar arquivo de backup" para backup completo]' : '');
+    + (json.length > 1800 ? '\n\n[...use "Baixar arquivo" para backup completo]' : '');
   var assunto = encodeURIComponent('PinkEvent PRO — Backup ' + hoje);
   var corpo = encodeURIComponent(resumo);
-  var url;
-  if(tipo === 'gmail') {
-    url = 'https://mail.google.com/mail/?view=cm&su=' + assunto + '&body=' + corpo;
-    window.open(url, '_blank');
+  if (tipo === 'gmail') {
+    window.open('https://mail.google.com/mail/?view=cm&su=' + assunto + '&body=' + corpo, '_blank');
   } else {
-    url = 'mailto:?subject=' + assunto + '&body=' + corpo;
-    window.location.href = url;
+    window.location.href = 'mailto:?subject=' + assunto + '&body=' + corpo;
   }
-  showBackupMsg('📧 Seu e-mail foi aberto. Complete o envio clicando em Enviar.', 'info');
+  showBackupMsg('📧 E-mail aberto. Clique em Enviar para concluir.', 'info');
 }
 
 function restaurarBackup(event) {
-  var file = event.target.files[0];
-  if(!file) return;
+  var file = event.target.files[0]; if (!file) return;
   var reader = new FileReader();
   reader.onload = function(e) {
     try {
       var parsed = JSON.parse(e.target.result);
       var dados = parsed.dados || parsed;
-      if(!dados.eventos) throw new Error('Arquivo inválido');
-      if(!confirm('Restaurar backup de ' + (parsed.data ? new Date(parsed.data).toLocaleDateString('pt-BR') : 'data desconhecida') + '?\n\nIsso substituirá todos os dados atuais.')) return;
+      if (!dados.eventos) throw new Error('Arquivo inválido');
+      if (!confirm('Restaurar backup?\n\nIsso substituirá todos os dados atuais.')) return;
       window.state = dados;
-      window.save(); closeModal('modal-backup');
+      window.state.eventos    = window.state.eventos    || [];
+      window.state.orcPrev    = window.state.orcPrev    || [];
+      window.state.orcReal    = window.state.orcReal    || [];
+      window.state.atividades = window.state.atividades || [];
+      window.state.checklist  = window.state.checklist  || [];
+      window.save();
+      closeModal('modal-backup');
       renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist();
       showPage('eventos');
       alert('✅ Dados restaurados com sucesso!');
@@ -549,78 +471,94 @@ function showPage(id) {
   document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
   document.getElementById('page-' + id).classList.add('active');
   var navEl = document.getElementById('nav-' + id);
-  if(navEl) navEl.classList.add('active');
-  if(id === 'orcamento') { populateEventSelects(); renderOrcamento(); }
-  if(id === 'dashboard') renderDashboard();
-  if(id === 'atividades') { populateAtivFiltros(); renderAtividades(); }
-  if(id === 'ferramentas') renderChecklist();
+  if (navEl) navEl.classList.add('active');
+  if (id === 'orcamento')   { populateEventSelects(); renderOrcamento(); }
+  if (id === 'dashboard')   renderDashboard();
+  if (id === 'atividades')  { populateAtivFiltros(); renderAtividades(); }
+  if (id === 'ferramentas') renderChecklist();
 }
 
-function openModal(id) { populateEventSelects(); document.getElementById(id).style.display = 'flex'; }
+function openModal(id)  { populateEventSelects(); document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function populateEventSelects() {
   ['op-evento','or-evento','at-evento','orc-event-filter'].forEach(function(sid) {
-    var sel = document.getElementById(sid); if(!sel) return;
+    var sel = document.getElementById(sid); if (!sel) return;
     var cur = sel.value;
     sel.innerHTML = window.state.eventos.length === 0 ? '<option value="">— Nenhum evento —</option>' : '';
-    window.state.eventos.forEach(function(ev, i) { var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o); });
-    if(cur !== '') sel.value = cur;
+    window.state.eventos.forEach(function(ev, i) {
+      var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o);
+    });
+    if (cur !== '') sel.value = cur;
   });
 }
 
 function populateAtivFiltros() {
   var sel = document.getElementById('ativ-filter-ev');
   sel.innerHTML = '<option value="">Todos os eventos</option>';
-  window.state.eventos.forEach(function(ev, i) { var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o); });
+  window.state.eventos.forEach(function(ev, i) {
+    var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o);
+  });
 }
 
-function fmtDate(d) { if(!d) return '—'; var p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-function fmtBRL(v) { return 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(d) { if (!d) return '—'; var p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function fmtBRL(v)  { return 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 
 function statusBadge(s) {
   var m = {'Planejamento':'badge-info','Em andamento':'badge-warning','Concluído':'badge-success','Cancelado':'badge-gray','Pendente':'badge-warning','Em execução':'badge-pink','Concluída':'badge-success','Em atraso':'badge-danger'};
   return '<span class="badge '+(m[s]||'badge-gray')+'">'+s+'</span>';
 }
-
 function prioBadge(p) {
-  if(p==='Crítica') return '<span class="badge badge-danger">Crítica</span>';
-  if(p==='Alta') return '<span class="badge badge-warning">Alta</span>';
+  if (p==='Crítica') return '<span class="badge badge-danger">Crítica</span>';
+  if (p==='Alta')    return '<span class="badge badge-warning">Alta</span>';
   return '';
 }
-
 function getAtivStatus(at) {
-  if(at.status==='Concluída') return 'Concluída';
-  if(at.prazo) { var h=new Date(); h.setHours(0,0,0,0); if(new Date(at.prazo+'T00:00:00')<h) return 'Em atraso'; }
+  if (at.status==='Concluída') return 'Concluída';
+  if (at.prazo) { var h=new Date(); h.setHours(0,0,0,0); if (new Date(at.prazo+'T00:00:00')<h) return 'Em atraso'; }
   return at.status;
 }
 
 // ==================== EVENTOS ====================
 function salvarEvento() {
   var nome = document.getElementById('ev-nome').value.trim();
-  if(!nome) { alert('Informe o nome do evento.'); return; }
-  window.state.eventos.push({ nome:nome, inicio:document.getElementById('ev-inicio').value, fim:document.getElementById('ev-fim').value, local:document.getElementById('ev-local').value, resp:document.getElementById('ev-resp').value, status:document.getElementById('ev-status').value, publico:document.getElementById('ev-publico').value, desc:document.getElementById('ev-desc').value });
-  window.save(); closeModal('modal-evento');
+  if (!nome) { alert('Informe o nome do evento.'); return; }
+  window.state.eventos.push({
+    nome: nome,
+    inicio: document.getElementById('ev-inicio').value,
+    fim: document.getElementById('ev-fim').value,
+    local: document.getElementById('ev-local').value,
+    resp: document.getElementById('ev-resp').value,
+    status: document.getElementById('ev-status').value,
+    publico: document.getElementById('ev-publico').value,
+    desc: document.getElementById('ev-desc').value
+  });
+  window.save();
+  closeModal('modal-evento');
   ['ev-nome','ev-inicio','ev-fim','ev-local','ev-resp','ev-publico','ev-desc'].forEach(function(id){ document.getElementById(id).value=''; });
   renderEventos();
 }
 
 function excluirEvento(i) {
-  if(!confirm('Excluir "'+window.state.eventos[i].nome+'"?\n\nOrçamentos e atividades vinculados também serão removidos.')) return;
-  window.state.orcPrev = window.state.orcPrev.filter(function(x){return x.eventoIdx!==i;});
-  window.state.orcReal = window.state.orcReal.filter(function(x){return x.eventoIdx!==i;});
+  if (!confirm('Excluir "'+window.state.eventos[i].nome+'"?\nOrçamentos e atividades vinculados também serão removidos.')) return;
+  window.state.orcPrev    = window.state.orcPrev.filter(function(x){return x.eventoIdx!==i;});
+  window.state.orcReal    = window.state.orcReal.filter(function(x){return x.eventoIdx!==i;});
   window.state.atividades = window.state.atividades.filter(function(x){return x.eventoIdx!==i;});
   window.state.orcPrev.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
   window.state.orcReal.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
   window.state.atividades.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
-  window.state.eventos.splice(i,1); window.save(); renderEventos();
+  window.state.eventos.splice(i, 1);
+  window.save(); renderEventos();
 }
 
 function renderEventos() {
   var w = document.getElementById('eventos-table-wrap');
-  if(!window.state.eventos.length) { w.innerHTML='<div class="empty-state"><i class="ti ti-calendar-off"></i>Nenhum evento cadastrado.<br>Clique em "Novo evento" para começar.</div>'; return; }
+  if (!window.state.eventos.length) {
+    w.innerHTML='<div class="empty-state"><i class="ti ti-calendar-off"></i>Nenhum evento cadastrado.<br>Clique em "Novo evento" para começar.</div>';
+    return;
+  }
   var h = '<table class="table"><thead><tr><th>Nome</th><th>Início</th><th>Término</th><th>Local</th><th>Responsável</th><th>Público</th><th>Status</th><th></th></tr></thead><tbody>';
-  window.state.eventos.forEach(function(ev,i){
+  window.state.eventos.forEach(function(ev, i) {
     h += '<tr><td style="font-weight:700">'+ev.nome+'</td><td>'+fmtDate(ev.inicio)+'</td><td>'+fmtDate(ev.fim)+'</td><td>'+ev.local+'</td><td>'+ev.resp+'</td><td>'+(ev.publico||'—')+'</td><td>'+statusBadge(ev.status)+'</td><td><button class="btn btn-danger btn-sm" onclick="excluirEvento('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></td></tr>';
   });
   w.innerHTML = h + '</tbody></table>';
@@ -631,93 +569,99 @@ function salvarOrc(tipo) {
   var pi = tipo==='prev'?'op':'or';
   var evIdx = parseInt(document.getElementById(pi+'-evento').value);
   var valor = parseFloat(document.getElementById(pi+'-valor').value);
-  if(isNaN(evIdx)||evIdx<0){alert('Selecione um evento.');return;}
-  if(!valor||isNaN(valor)||valor<=0){alert('Informe o valor.');return;}
-  var item = { eventoIdx:evIdx, cat:document.getElementById(pi+'-cat').value, valor:valor, forn:document.getElementById(pi+'-forn')?document.getElementById(pi+'-forn').value:'', desc:document.getElementById(pi+'-desc').value };
-  if(tipo==='real'){item.data=document.getElementById('or-data').value;item.nf=document.getElementById('or-nf').value;}
-  if(tipo==='prev') window.state.orcPrev.push(item); else window.state.orcReal.push(item);
-  window.save(); closeModal(tipo==='prev'?'modal-orc-prev':'modal-orc-real');
-  ['op-valor','op-forn','op-desc','or-valor','or-forn','or-desc','or-nf','or-data'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  if (isNaN(evIdx)||evIdx<0) { alert('Selecione um evento.'); return; }
+  if (!valor||isNaN(valor)||valor<=0) { alert('Informe o valor.'); return; }
+  var item = { eventoIdx:evIdx, cat:document.getElementById(pi+'-cat').value, valor:valor, forn:document.getElementById(pi+'-forn').value, desc:document.getElementById(pi+'-desc').value };
+  if (tipo==='real') { item.data=document.getElementById('or-data').value; item.nf=document.getElementById('or-nf').value; }
+  if (tipo==='prev') window.state.orcPrev.push(item); else window.state.orcReal.push(item);
+  window.save();
+  closeModal(tipo==='prev'?'modal-orc-prev':'modal-orc-real');
+  ['op-valor','op-forn','op-desc','or-valor','or-forn','or-desc','or-nf','or-data'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
   renderOrcamento();
 }
 
 function removeOrc(tipo, gi) {
-  if(!confirm('Remover este item?')) return;
-  if(tipo==='prev') window.state.orcPrev.splice(gi,1); else window.state.orcReal.splice(gi,1);
+  if (!confirm('Remover este item?')) return;
+  if (tipo==='prev') window.state.orcPrev.splice(gi,1); else window.state.orcReal.splice(gi,1);
   window.save(); renderOrcamento();
 }
 
 function renderOrcamento() {
   populateEventSelects();
   var evIdx = parseInt(document.getElementById('orc-event-filter').value);
-  if(isNaN(evIdx)){document.getElementById('orc-prev-table').innerHTML='<div class="empty-state" style="padding:1rem 0">Cadastre um evento primeiro.</div>';document.getElementById('orc-real-table').innerHTML='';document.getElementById('orc-summary').innerHTML='';return;}
+  if (isNaN(evIdx)) {
+    document.getElementById('orc-prev-table').innerHTML='<div class="empty-state" style="padding:1rem 0">Cadastre um evento primeiro.</div>';
+    document.getElementById('orc-real-table').innerHTML='';
+    document.getElementById('orc-summary').innerHTML='';
+    return;
+  }
   var prev = window.state.orcPrev.map(function(x,i){return{item:x,idx:i};}).filter(function(x){return x.item.eventoIdx===evIdx;});
   var real = window.state.orcReal.map(function(x,i){return{item:x,idx:i};}).filter(function(x){return x.item.eventoIdx===evIdx;});
-  function tbl(items,tipo){
-    if(!items.length) return '<div class="empty-state" style="padding:1rem 0"><i class="ti ti-file-off"></i>Sem registros</div>';
+  function tbl(items, tipo) {
+    if (!items.length) return '<div class="empty-state" style="padding:1rem 0"><i class="ti ti-file-off"></i>Sem registros</div>';
     var h='<table class="table"><thead><tr><th>Categoria</th><th>Fornecedor</th><th>Descrição</th><th>Valor</th><th></th></tr></thead><tbody>';
-    items.forEach(function(x){h+='<tr><td>'+x.item.cat+'</td><td style="color:#a0607a">'+(x.item.forn||'—')+'</td><td style="color:#a0607a">'+(x.item.desc||'—')+'</td><td style="font-weight:700">'+fmtBRL(x.item.valor)+'</td><td><button class="btn btn-sm" onclick="removeOrc(\''+tipo+'\','+x.idx+')" title="Remover"><i class="ti ti-trash"></i></button></td></tr>';});
+    items.forEach(function(x){ h+='<tr><td>'+x.item.cat+'</td><td style="color:#a0607a">'+(x.item.forn||'—')+'</td><td style="color:#a0607a">'+(x.item.desc||'—')+'</td><td style="font-weight:700">'+fmtBRL(x.item.valor)+'</td><td><button class="btn btn-sm" onclick="removeOrc(\''+tipo+'\','+x.idx+')" title="Remover"><i class="ti ti-trash"></i></button></td></tr>'; });
     return h+'</tbody></table>';
   }
-  document.getElementById('orc-prev-table').innerHTML=tbl(prev,'prev');
-  document.getElementById('orc-real-table').innerHTML=tbl(real,'real');
+  document.getElementById('orc-prev-table').innerHTML = tbl(prev,'prev');
+  document.getElementById('orc-real-table').innerHTML = tbl(real,'real');
   var tP=prev.reduce(function(a,x){return a+x.item.valor;},0), tR=real.reduce(function(a,x){return a+x.item.valor;},0), dif=tR-tP, pct=tP>0?Math.round((tR/tP)*100):0;
   var h='<div class="metric-grid" style="margin-bottom:1rem">';
   h+='<div class="metric"><div class="metric-label">Total previsto</div><div class="metric-value">'+fmtBRL(tP)+'</div></div>';
   h+='<div class="metric"><div class="metric-label">Total realizado</div><div class="metric-value">'+fmtBRL(tR)+'</div></div>';
   h+='<div class="metric"><div class="metric-label">Variação</div><div class="metric-value" style="color:'+(dif>0?'#a32d2d':'#2d6a0a')+'">'+fmtBRL(Math.abs(dif))+'</div><div class="metric-sub">'+(dif>0?'▲ acima':'▼ dentro')+'</div></div>';
   h+='<div class="metric"><div class="metric-label">% executado</div><div class="metric-value">'+pct+'%</div></div></div>';
-  if(tP>0||tR>0){
+  if (tP>0||tR>0) {
     var cats={};
     prev.forEach(function(x){cats[x.item.cat]=(cats[x.item.cat]||{p:0,r:0});cats[x.item.cat].p+=x.item.valor;});
     real.forEach(function(x){if(!cats[x.item.cat])cats[x.item.cat]={p:0,r:0};cats[x.item.cat].r+=x.item.valor;});
     h+='<table class="table"><thead><tr><th>Categoria</th><th>Previsto</th><th>Realizado</th><th>Diferença</th><th>Situação</th></tr></thead><tbody>';
-    Object.keys(cats).forEach(function(cat){var p=cats[cat].p,r=cats[cat].r,d=r-p;var sit=r>p?'<span class="badge badge-danger">Acima</span>':r<p?'<span class="badge badge-success">Abaixo</span>':'<span class="badge badge-pink">No limite</span>';h+='<tr><td>'+cat+'</td><td>'+fmtBRL(p)+'</td><td>'+fmtBRL(r)+'</td><td style="color:'+(d>0?'#a32d2d':'#2d6a0a')+'">'+(d>0?'+':'')+fmtBRL(d)+'</td><td>'+sit+'</td></tr>';});
+    Object.keys(cats).forEach(function(cat){ var p=cats[cat].p,r=cats[cat].r,d=r-p; var sit=r>p?'<span class="badge badge-danger">Acima</span>':r<p?'<span class="badge badge-success">Abaixo</span>':'<span class="badge badge-pink">No limite</span>'; h+='<tr><td>'+cat+'</td><td>'+fmtBRL(p)+'</td><td>'+fmtBRL(r)+'</td><td style="color:'+(d>0?'#a32d2d':'#2d6a0a')+'">'+(d>0?'+':'')+fmtBRL(d)+'</td><td>'+sit+'</td></tr>'; });
     h+='</tbody></table>';
   } else { h+='<p style="font-size:13px;color:#a0607a">Cadastre valores para ver o comparativo.</p>'; }
-  document.getElementById('orc-summary').innerHTML=h;
+  document.getElementById('orc-summary').innerHTML = h;
 }
 
 // ==================== ATIVIDADES ====================
 function salvarAtividade() {
-  var nome=document.getElementById('at-nome').value.trim(); if(!nome){alert('Informe a atividade.');return;}
-  var evIdx=parseInt(document.getElementById('at-evento').value); if(isNaN(evIdx)){alert('Selecione um evento.');return;}
-  window.state.atividades.push({eventoIdx:evIdx,nome:nome,resp:document.getElementById('at-resp').value,prazo:document.getElementById('at-prazo').value,prio:document.getElementById('at-prio').value,status:document.getElementById('at-status').value,obs:document.getElementById('at-obs').value});
+  var nome = document.getElementById('at-nome').value.trim(); if (!nome) { alert('Informe a atividade.'); return; }
+  var evIdx = parseInt(document.getElementById('at-evento').value); if (isNaN(evIdx)) { alert('Selecione um evento.'); return; }
+  window.state.atividades.push({ eventoIdx:evIdx, nome:nome, resp:document.getElementById('at-resp').value, prazo:document.getElementById('at-prazo').value, prio:document.getElementById('at-prio').value, status:document.getElementById('at-status').value, obs:document.getElementById('at-obs').value });
   window.save(); closeModal('modal-atividade');
-  ['at-nome','at-resp','at-prazo','at-obs'].forEach(function(id){document.getElementById(id).value='';});
+  ['at-nome','at-resp','at-prazo','at-obs'].forEach(function(id){ document.getElementById(id).value=''; });
   populateAtivFiltros(); renderAtividades();
 }
 
-function atualizarStatusAtiv(i,s){window.state.atividades[i].status=s;window.save();renderAtividades();}
-function excluirAtiv(i){if(!confirm('Remover esta atividade?'))return;window.state.atividades.splice(i,1);window.save();renderAtividades();}
+function atualizarStatusAtiv(i, s) { window.state.atividades[i].status=s; window.save(); renderAtividades(); }
+function excluirAtiv(i) { if (!confirm('Remover esta atividade?')) return; window.state.atividades.splice(i,1); window.save(); renderAtividades(); }
 
 function renderAtividades() {
-  var fEv=document.getElementById('ativ-filter-ev')?document.getElementById('ativ-filter-ev').value:'';
-  var fSt=document.getElementById('ativ-filter-st')?document.getElementById('ativ-filter-st').value:'';
-  var w=document.getElementById('ativ-table-wrap');
-  var lista=window.state.atividades.map(function(at,i){return{at:at,i:i};}).filter(function(x){
-    if(fEv!==''&&x.at.eventoIdx!==parseInt(fEv))return false;
-    if(fSt!==''&&getAtivStatus(x.at)!==fSt)return false;
+  var fEv = document.getElementById('ativ-filter-ev') ? document.getElementById('ativ-filter-ev').value : '';
+  var fSt = document.getElementById('ativ-filter-st') ? document.getElementById('ativ-filter-st').value : '';
+  var w = document.getElementById('ativ-table-wrap');
+  var lista = window.state.atividades.map(function(at,i){return{at:at,i:i};}).filter(function(x){
+    if (fEv!==''&&x.at.eventoIdx!==parseInt(fEv)) return false;
+    if (fSt!==''&&getAtivStatus(x.at)!==fSt) return false;
     return true;
   });
-  if(!lista.length){w.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade encontrada.</div>';return;}
+  if (!lista.length) { w.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade encontrada.</div>'; return; }
   var h='<table class="table"><thead><tr><th>Evento</th><th>Atividade</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead><tbody>';
   lista.forEach(function(x){
     var at=x.at,i=x.i,ev=window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—',st=getAtivStatus(at);
     h+='<tr><td style="font-size:12px;color:#a0607a;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+ev+'">'+ev+'</td><td style="font-weight:600">'+at.nome+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+prioBadge(at.prio)+'</td><td>'+statusBadge(st)+'</td><td><div style="display:flex;gap:4px">';
-    if(at.status==='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Em execução\')" title="Iniciar"><i class="ti ti-player-play"></i></button>';
-    if(at.status!=='Concluída')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Concluída\')" title="Concluir"><i class="ti ti-check"></i></button>';
-    if(at.status!=='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Pendente\')" title="Reabrir"><i class="ti ti-refresh"></i></button>';
+    if (at.status==='Pendente')   h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Em execução\')" title="Iniciar"><i class="ti ti-player-play"></i></button>';
+    if (at.status!=='Concluída')  h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Concluída\')" title="Concluir"><i class="ti ti-check"></i></button>';
+    if (at.status!=='Pendente')   h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Pendente\')" title="Reabrir"><i class="ti ti-refresh"></i></button>';
     h+='<button class="btn btn-sm" onclick="excluirAtiv('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></div></td></tr>';
   });
-  w.innerHTML=h+'</tbody></table>';
+  w.innerHTML = h+'</tbody></table>';
 }
 
 // ==================== DASHBOARD ====================
 function renderDashboard() {
-  var total=window.state.atividades.length,concluidas=window.state.atividades.filter(function(a){return a.status==='Concluída';}).length;
+  var total=window.state.atividades.length, concluidas=window.state.atividades.filter(function(a){return a.status==='Concluída';}).length;
   var emAtraso=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;
-  var tP=window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0),tR=window.state.orcReal.reduce(function(a,x){return a+x.valor;},0);
+  var tP=window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0), tR=window.state.orcReal.reduce(function(a,x){return a+x.valor;},0);
   document.getElementById('dash-metrics').innerHTML=
     '<div class="metric"><div class="metric-label">Eventos</div><div class="metric-value">'+window.state.eventos.length+'</div></div>'+
     '<div class="metric"><div class="metric-label">Atividades</div><div class="metric-value">'+total+'</div></div>'+
@@ -725,59 +669,133 @@ function renderDashboard() {
     '<div class="metric"><div class="metric-label">Em atraso</div><div class="metric-value" style="color:#a32d2d">'+emAtraso+'</div></div>'+
     '<div class="metric"><div class="metric-label">Previsto</div><div class="metric-value" style="font-size:16px">'+fmtBRL(tP)+'</div></div>'+
     '<div class="metric"><div class="metric-label">Realizado</div><div class="metric-value" style="font-size:16px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+fmtBRL(tR)+'</div></div>';
-  var ss=[{l:'Pendente',c:'#b5006e'},{l:'Em execução',c:'#185FA5'},{l:'Concluída',c:'#2d6a0a'},{l:'Em atraso',c:'#a32d2d'}],sh='';
-  ss.forEach(function(s){var cnt=window.state.atividades.filter(function(a){return getAtivStatus(a)===s.l;}).length,pct=total>0?Math.round((cnt/total)*100):0;sh+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>'+s.l+'</span><span style="font-weight:700">'+cnt+' <span style="color:#c0a0b0;font-weight:400">('+pct+'%)</span></span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+s.c+'"></div></div></div>';});
+  var ss=[{l:'Pendente',c:'#b5006e'},{l:'Em execução',c:'#185FA5'},{l:'Concluída',c:'#2d6a0a'},{l:'Em atraso',c:'#a32d2d'}], sh='';
+  ss.forEach(function(s){ var cnt=window.state.atividades.filter(function(a){return getAtivStatus(a)===s.l;}).length,pct=total>0?Math.round((cnt/total)*100):0; sh+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>'+s.l+'</span><span style="font-weight:700">'+cnt+' <span style="color:#c0a0b0;font-weight:400">('+pct+'%)</span></span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+s.c+'"></div></div></div>'; });
   document.getElementById('dash-ativ-status').innerHTML=sh||'<div class="empty-state" style="padding:1rem 0">Sem atividades</div>';
   var oh='';
-  if(tP>0||tR>0){var mx=Math.max(tP,tR,1);oh='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Previsto</span><span style="font-weight:700">'+fmtBRL(tP)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tP/mx)*100)+'%;background:#b5006e"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Realizado</span><span style="font-weight:700">'+fmtBRL(tR)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tR/mx)*100)+'%;background:'+(tR>tP?'#a32d2d':'#2d6a0a')+'"></div></div></div><div style="margin-top:10px;font-size:13px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+(tR>tP?'▲ '+fmtBRL(tR-tP)+' acima do previsto':'▼ '+fmtBRL(tP-tR)+' dentro do previsto')+'</div>';}else{oh='<div class="empty-state" style="padding:1rem 0">Sem orçamento registrado</div>';}
+  if (tP>0||tR>0) { var mx=Math.max(tP,tR,1); oh='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Previsto</span><span style="font-weight:700">'+fmtBRL(tP)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tP/mx)*100)+'%;background:#b5006e"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Realizado</span><span style="font-weight:700">'+fmtBRL(tR)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tR/mx)*100)+'%;background:'+(tR>tP?'#a32d2d':'#2d6a0a')+'"></div></div></div><div style="margin-top:10px;font-size:13px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+(tR>tP?'▲ '+fmtBRL(tR-tP)+' acima do previsto':'▼ '+fmtBRL(tP-tR)+' dentro do previsto')+'</div>'; }
+  else { oh='<div class="empty-state" style="padding:1rem 0">Sem orçamento registrado</div>'; }
   document.getElementById('dash-orc-bar').innerHTML=oh;
   var crit=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso'||a.status==='Pendente';}).slice(0,8);
-  if(!crit.length){document.getElementById('dash-ativ-list').innerHTML='<div class="empty-state" style="padding:1rem 0"><i class="ti ti-circle-check" style="color:#2d6a0a;opacity:1"></i>Nenhuma pendência!</div>';}
-  else{var dh='<table class="table"><thead><tr><th>Atividade</th><th>Evento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>';crit.forEach(function(at){dh+='<tr><td style="font-weight:600">'+at.nome+'</td><td style="font-size:12px;color:#a0607a">'+(window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—')+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+statusBadge(getAtivStatus(at))+'</td></tr>';});document.getElementById('dash-ativ-list').innerHTML=dh+'</tbody></table>';}
+  if (!crit.length) { document.getElementById('dash-ativ-list').innerHTML='<div class="empty-state" style="padding:1rem 0"><i class="ti ti-circle-check" style="color:#2d6a0a;opacity:1"></i>Nenhuma pendência!</div>'; }
+  else { var dh='<table class="table"><thead><tr><th>Atividade</th><th>Evento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>'; crit.forEach(function(at){ dh+='<tr><td style="font-weight:600">'+at.nome+'</td><td style="font-size:12px;color:#a0607a">'+(window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—')+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+statusBadge(getAtivStatus(at))+'</td></tr>'; }); document.getElementById('dash-ativ-list').innerHTML=dh+'</tbody></table>'; }
 }
 
 // ==================== CHECKLIST ====================
-var defaultChecklist=['Confirmar local e contrato','Verificar equipamentos audiovisuais','Enviar convites e confirmações','Definir cardápio e fornecedor de alimentação','Preparar material gráfico','Testar tecnologia e internet no local','Briefing da equipe','Contratar segurança e recepcionistas','Confirmar transporte e estacionamento','Preparar credenciais dos participantes'];
-window._defaultChecklist = defaultChecklist;
-
-function renderChecklist(){
-  var done=window.state.checklist.filter(function(x){return x.ok;}).length,total=window.state.checklist.length,pct=total>0?Math.round((done/total)*100):0;
+function renderChecklist() {
+  var done=window.state.checklist.filter(function(x){return x.ok;}).length, total=window.state.checklist.length, pct=total>0?Math.round((done/total)*100):0;
   var h='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:#a0607a">Progresso</span><span style="font-weight:700;color:#b5006e">'+done+'/'+total+' ('+pct+'%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:#e0006e"></div></div></div>';
-  window.state.checklist.forEach(function(item,i){h+='<div class="checklist-item"><input type="checkbox" '+(item.ok?'checked':'')+' onchange="toggleChecklist('+i+')" style="width:17px;height:17px;cursor:pointer;accent-color:#e0006e"><span style="font-size:13.5px;flex:1;'+(item.ok?'text-decoration:line-through;color:#c0a0b0':'')+'">'+item.texto+'</span><button class="btn btn-sm" onclick="removeChecklist('+i+')" title="Remover"><i class="ti ti-x"></i></button></div>';});
+  window.state.checklist.forEach(function(item,i){ h+='<div class="checklist-item"><input type="checkbox" '+(item.ok?'checked':'')+' onchange="toggleChecklist('+i+')" style="width:17px;height:17px;cursor:pointer;accent-color:#e0006e"><span style="font-size:13.5px;flex:1;'+(item.ok?'text-decoration:line-through;color:#c0a0b0':'')+'">'+item.texto+'</span><button class="btn btn-sm" onclick="removeChecklist('+i+')" title="Remover"><i class="ti ti-x"></i></button></div>'; });
   document.getElementById('checklist-wrap').innerHTML=h;
 }
-
-function toggleChecklist(i){window.state.checklist[i].ok=!window.state.checklist[i].ok;window.save();renderChecklist();}
-function removeChecklist(i){window.state.checklist.splice(i,1);window.save();renderChecklist();}
-function addChecklist(){var inp=document.getElementById('checklist-input'),txt=inp.value.trim();if(!txt)return;window.state.checklist.push({texto:txt,ok:false});inp.value='';window.save();renderChecklist();}
+function toggleChecklist(i) { window.state.checklist[i].ok=!window.state.checklist[i].ok; window.save(); renderChecklist(); }
+function removeChecklist(i) { window.state.checklist.splice(i,1); window.save(); renderChecklist(); }
+function addChecklist() { var inp=document.getElementById('checklist-input'),txt=inp.value.trim(); if(!txt) return; window.state.checklist.push({texto:txt,ok:false}); inp.value=''; window.save(); renderChecklist(); }
 
 // ==================== EXPORTAR CSV ====================
 function exportCSV(tipo) {
-  var rows,filename;
-  if(tipo==='eventos'){rows=[['Nome','Início','Término','Local','Responsável','Público estimado','Status','Descrição']];window.state.eventos.forEach(function(ev){rows.push([ev.nome,ev.inicio,ev.fim,ev.local,ev.resp,ev.publico,ev.status,ev.desc]);});filename='PinkEvent_Eventos.csv';}
-  else if(tipo==='orcamento'){rows=[['Evento','Tipo','Categoria','Fornecedor','Valor','Descrição','Data','NF/Recibo']];window.state.orcPrev.forEach(function(x){rows.push([window.state.eventos[x.eventoIdx]?window.state.eventos[x.eventoIdx].nome:'','Previsto',x.cat,x.forn||'',x.valor,x.desc,'','']);});window.state.orcReal.forEach(function(x){rows.push([window.state.eventos[x.eventoIdx]?window.state.eventos[x.eventoIdx].nome:'','Realizado',x.cat,x.forn||'',x.valor,x.desc,x.data||'',x.nf||'']);});filename='PinkEvent_Orcamento.csv';}
-  else{rows=[['Evento','Atividade','Responsável','Prazo','Prioridade','Status','Observações']];window.state.atividades.forEach(function(at){rows.push([window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'',at.nome,at.resp,at.prazo,at.prio,at.status,at.obs]);});filename='PinkEvent_Atividades.csv';}
+  var rows, filename;
+  if (tipo==='eventos') { rows=[['Nome','Início','Término','Local','Responsável','Público estimado','Status','Descrição']]; window.state.eventos.forEach(function(ev){ rows.push([ev.nome,ev.inicio,ev.fim,ev.local,ev.resp,ev.publico,ev.status,ev.desc]); }); filename='PinkEvent_Eventos.csv'; }
+  else if (tipo==='orcamento') { rows=[['Evento','Tipo','Categoria','Fornecedor','Valor','Descrição','Data','NF/Recibo']]; window.state.orcPrev.forEach(function(x){ rows.push([window.state.eventos[x.eventoIdx]?window.state.eventos[x.eventoIdx].nome:'','Previsto',x.cat,x.forn||'',x.valor,x.desc,'','']); }); window.state.orcReal.forEach(function(x){ rows.push([window.state.eventos[x.eventoIdx]?window.state.eventos[x.eventoIdx].nome:'','Realizado',x.cat,x.forn||'',x.valor,x.desc,x.data||'',x.nf||'']); }); filename='PinkEvent_Orcamento.csv'; }
+  else { rows=[['Evento','Atividade','Responsável','Prazo','Prioridade','Status','Observações']]; window.state.atividades.forEach(function(at){ rows.push([window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'',at.nome,at.resp,at.prazo,at.prio,at.status,at.obs]); }); filename='PinkEvent_Atividades.csv'; }
   var csv=rows.map(function(r){return r.map(function(c){return '"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
-  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
 // ==================== RELATÓRIO ====================
-function gerarRelatorio(){
-  var total=window.state.atividades.length,conc=window.state.atividades.filter(function(a){return a.status==='Concluída';}).length,atras=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;
-  var tP=window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0),tR=window.state.orcReal.reduce(function(a,x){return a+x.valor;},0),dif=tR-tP;
+function gerarRelatorio() {
+  var total=window.state.atividades.length, conc=window.state.atividades.filter(function(a){return a.status==='Concluída';}).length, atras=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;
+  var tP=window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0), tR=window.state.orcReal.reduce(function(a,x){return a+x.valor;},0), dif=tR-tP;
   var h='<div style="background:#fdf0f5;border:1px solid #f0d6e0;border-radius:10px;padding:1rem;margin-top:12px;font-size:13.5px;line-height:2">';
-  h+='<strong style="color:#b5006e">Relatório gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</strong><br>';
+  h+='<strong style="color:#b5006e">Relatório — '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</strong><br>';
   h+='<hr style="border:none;border-top:1px solid #f0d6e0;margin:8px 0">';
   h+='📅 Eventos: <strong>'+window.state.eventos.length+'</strong><br>';
   h+='✅ Atividades concluídas: <strong>'+conc+' de '+total+'</strong> ('+(total>0?Math.round((conc/total)*100):0)+'%)<br>';
   h+='⚠️ Em atraso: <strong style="color:#a32d2d">'+atras+'</strong><br>';
   h+='💰 Previsto: <strong>'+fmtBRL(tP)+'</strong><br>';
   h+='💸 Realizado: <strong>'+fmtBRL(tR)+'</strong><br>';
-  if(tP>0)h+='📊 Variação: <strong style="color:'+(dif>0?'#a32d2d':'#2d6a0a')+'">'+(dif>0?'▲ +':'')+fmtBRL(dif)+' '+(dif>0?'(acima)':'(dentro do previsto)')+'</strong><br>';
+  if (tP>0) h+='📊 Variação: <strong style="color:'+(dif>0?'#a32d2d':'#2d6a0a')+'">'+(dif>0?'▲ +':'')+fmtBRL(dif)+' '+(dif>0?'(acima)':'(dentro do previsto)')+'</strong><br>';
   h+='</div>';
   document.getElementById('rel-content').innerHTML=h;
 }
 </script>
+
+<!-- ===================== FIREBASE SDK (módulo) ===================== -->
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyADSIbObunxunGDhIYi13AGUBoGsv0kA-A",
+  authDomain:        "pinkeventpro.firebaseapp.com",
+  projectId:         "pinkeventpro",
+  storageBucket:     "pinkeventpro.firebasestorage.app",
+  messagingSenderId: "649015393375",
+  appId:             "1:649015393375:web:b19b6c8b1489b9df5fefea"
+};
+
+const app    = initializeApp(firebaseConfig);
+const db     = getFirestore(app);
+const DOC_REF = doc(db, "pinkevent", "dados");
+
+// Sobrescreve window.save com versão Firebase
+window.save = async function() {
+  window.setSyncStatus('syncing', 'Salvando...');
+  try {
+    await setDoc(DOC_REF, {
+      state:   JSON.stringify(window.state),
+      updated: new Date().toISOString()
+    });
+    localStorage.setItem('pinkevent_pro_v1', JSON.stringify(window.state));
+    window.setSyncStatus('ok', 'Salvo ✓');
+    setTimeout(function(){ window.setSyncStatus('ok', 'Conectado'); }, 2000);
+  } catch(e) {
+    window.setSyncStatus('error', 'Erro ao salvar');
+    try { localStorage.setItem('pinkevent_pro_v1', JSON.stringify(window.state)); } catch(e2){}
+    console.warn('Firebase save error:', e);
+  }
+};
+
+// Carrega dados do Firestore na inicialização
+async function loadFromFirestore() {
+  window.setSyncStatus('syncing', 'Carregando...');
+  try {
+    const snap = await getDoc(DOC_REF);
+    if (snap.exists() && snap.data().state) {
+      const dados = JSON.parse(snap.data().state);
+      dados.eventos    = dados.eventos    || [];
+      dados.orcPrev    = dados.orcPrev    || [];
+      dados.orcReal    = dados.orcReal    || [];
+      dados.atividades = dados.atividades || [];
+      dados.checklist  = dados.checklist  || [];
+      window.state = dados;
+    }
+    window.setSyncStatus('ok', 'Conectado');
+  } catch(e) {
+    window.setSyncStatus('error', 'Offline — dados locais');
+    console.warn('Firebase load error:', e);
+    try {
+      const s = localStorage.getItem('pinkevent_pro_v1');
+      if (s) window.state = JSON.parse(s);
+    } catch(e2) {}
+  }
+
+  // Inicializa checklist padrão se vazio
+  if (!window.state.checklist || !window.state.checklist.length) {
+    window.state.checklist = window._defaultChecklist.map(function(t){ return { texto: t, ok: false }; });
+    window.save();
+  }
+
+  // Renderiza tudo
+  renderEventos();
+  renderAtividades();
+  populateEventSelects();
+  renderChecklist();
+}
+
+loadFromFirestore();
+</script>
+
 </body>
 </html>
