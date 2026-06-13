@@ -109,6 +109,7 @@ textarea { resize: vertical; }
     <div class="nav-item" onclick="showPage('atividades')" id="nav-atividades"><i class="ti ti-checklist"></i> Atividades</div>
     <div class="nav-item" onclick="showPage('dashboard')" id="nav-dashboard"><i class="ti ti-chart-bar"></i> Dashboard</div>
     <div class="nav-item" onclick="showPage('ferramentas')" id="nav-ferramentas"><i class="ti ti-tools"></i> Ferramentas</div>
+    <div class="nav-item" onclick="showPage('fornecedores')" id="nav-fornecedores"><i class="ti ti-address-book"></i> Fornecedores</div>
     <div class="nav-divider"></div>
     <div class="nav-item" onclick="openModal('modal-backup')" style="color:#e0006e;font-weight:600"><i class="ti ti-database-export"></i> Backup / Restaurar</div>
   </div>
@@ -219,6 +220,27 @@ textarea { resize: vertical; }
       </div>
     </div>
 
+    <!-- FORNECEDORES -->
+    <div class="page" id="page-fornecedores">
+      <div class="page-header">
+        <span class="page-title">Fornecedores e Prestadores</span>
+        <button class="btn btn-primary" onclick="openModal('modal-fornecedor')"><i class="ti ti-plus"></i> Novo fornecedor</button>
+      </div>
+      <div class="card" style="padding:0.85rem 1.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:13px;color:#a0607a">Filtrar por tipo:</span>
+        <select id="forn-filter-tipo" onchange="renderFornecedores()" style="max-width:220px">
+          <option value="">Todos</option>
+          <option>Fornecedor</option>
+          <option>Prestador de serviço</option>
+        </select>
+      </div>
+      <div class="card">
+        <div id="forn-table-wrap">
+          <div class="empty-state"><i class="ti ti-address-book"></i>Nenhum fornecedor cadastrado.<br>Clique em "Novo fornecedor" para começar.</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -273,12 +295,12 @@ textarea { resize: vertical; }
 <div class="modal-bg" id="modal-evento" style="display:none" onclick="if(event.target===this)closeModal('modal-evento')">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-calendar-plus"></i>Cadastrar evento</div>
-    <div class="form-group"><label class="form-label">Nome do evento *</label><input id="ev-nome" placeholder="Ex: Casamento da Ana e Pedro"></div>
+    <div class="form-group"><label class="form-label">Nome do evento *</label><input id="ev-nome" placeholder="Ex: Encantos do fundo do mar"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Data de início</label><input id="ev-inicio" type="date"></div>
       <div class="form-group"><label class="form-label">Data de término</label><input id="ev-fim" type="date"></div>
     </div>
-    <div class="form-group"><label class="form-label">Local</label><input id="ev-local" placeholder="Ex: Espaço de Eventos Rosé"></div>
+    <div class="form-group"><label class="form-label">Local</label><input id="ev-local" placeholder="Ex: TEATRO RORAIMEIRA"></div>
     <div class="form-group"><label class="form-label">Responsável</label><input id="ev-resp" placeholder="Nome do responsável"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Público estimado</label><input id="ev-publico" type="number" placeholder="Ex: 200"></div>
@@ -300,7 +322,11 @@ textarea { resize: vertical; }
     <div class="modal-title"><i class="ti ti-file-invoice"></i>Orçamento previsto</div>
     <div class="form-group"><label class="form-label">Evento *</label><select id="op-evento"></select></div>
     <div class="form-group"><label class="form-label">Categoria *</label>
-      <select id="op-cat"><option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option><option>Outros</option></select>
+      <select id="op-cat">
+        <option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option>
+        <option>Tecidos</option><option>Acessórios</option><option>Figurinos M.O</option><option>Cenografia</option><option>Iluminação</option><option>Equipe técnica</option><option>Fotografia / Filmagem</option><option>Divulgação</option><option>Designer</option><option>Materiais de apoio</option><option>Transporte</option><option>Faxineira</option><option>Presentes</option><option>E-CAD</option><option>Lanches</option><option>Ingresso</option>
+        <option>Outros</option>
+      </select>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Valor (R$) *</label><input id="op-valor" type="number" step="0.01" placeholder="0,00"></div>
@@ -320,7 +346,11 @@ textarea { resize: vertical; }
     <div class="modal-title"><i class="ti ti-receipt-2"></i>Orçamento realizado</div>
     <div class="form-group"><label class="form-label">Evento *</label><select id="or-evento"></select></div>
     <div class="form-group"><label class="form-label">Categoria *</label>
-      <select id="or-cat"><option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option><option>Outros</option></select>
+      <select id="or-cat">
+        <option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option>
+        <option>Tecidos</option><option>Acessórios</option><option>Figurinos M.O</option><option>Cenografia</option><option>Iluminação</option><option>Equipe técnica</option><option>Fotografia / Filmagem</option><option>Divulgação</option><option>Designer</option><option>Materiais de apoio</option><option>Transporte</option><option>Faxineira</option><option>Presentes</option><option>E-CAD</option><option>Lanches</option><option>Ingresso</option>
+        <option>Outros</option>
+      </select>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Valor pago (R$) *</label><input id="or-valor" type="number" step="0.01" placeholder="0,00"></div>
@@ -343,7 +373,7 @@ textarea { resize: vertical; }
   <div class="modal">
     <div class="modal-title"><i class="ti ti-circle-plus"></i>Cadastrar atividade</div>
     <div class="form-group"><label class="form-label">Evento *</label><select id="at-evento"></select></div>
-    <div class="form-group"><label class="form-label">Descrição da atividade *</label><input id="at-nome" placeholder="Ex: Confirmar cardápio com fornecedor"></div>
+    <div class="form-group"><label class="form-label">Descrição da atividade *</label><input id="at-nome" placeholder="Ex: CONFIRMAR EQUIPE DE BOMBEIRO"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Responsável</label><input id="at-resp" placeholder="Nome..."></div>
       <div class="form-group"><label class="form-label">Prazo</label><input id="at-prazo" type="date"></div>
@@ -364,10 +394,40 @@ textarea { resize: vertical; }
   </div>
 </div>
 
+<!-- MODAL FORNECEDOR -->
+<div class="modal-bg" id="modal-fornecedor" style="display:none" onclick="if(event.target===this)closeModal('modal-fornecedor')">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-address-book"></i>Cadastrar fornecedor / prestador</div>
+    <div class="form-group"><label class="form-label">Nome *</label><input id="forn-nome" placeholder="Nome da empresa ou pessoa"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo *</label>
+        <select id="forn-tipo"><option>Fornecedor</option><option>Prestador de serviço</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Categoria de serviço</label>
+        <select id="forn-cat">
+          <option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option>
+          <option>Tecidos</option><option>Acessórios</option><option>Figurinos M.O</option><option>Cenografia</option><option>Iluminação</option><option>Equipe técnica</option><option>Fotografia / Filmagem</option><option>Divulgação</option><option>Designer</option><option>Materiais de apoio</option><option>Transporte</option><option>Faxineira</option><option>Presentes</option><option>E-CAD</option><option>Lanches</option><option>Ingresso</option>
+          <option>Outros</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input id="forn-tel" placeholder="(00) 00000-0000"></div>
+      <div class="form-group"><label class="form-label">E-mail</label><input id="forn-email" type="email" placeholder="email@exemplo.com"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Contato (nome da pessoa)</label><input id="forn-contato" placeholder="Nome do responsável pelo contato"></div>
+    <div class="form-group"><label class="form-label">Observações</label><textarea id="forn-obs" rows="2" placeholder="Informações adicionais, valores, condições..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-fornecedor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFornecedor()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== APP LOGIC ===================== -->
 <script>
 // ── Estado global ──────────────────────────────────────
-window.state = { eventos: [], orcPrev: [], orcReal: [], atividades: [], checklist: [] };
+window.state = { eventos: [], orcPrev: [], orcReal: [], atividades: [], checklist: [], fornecedores: [] };
 
 window._defaultChecklist = [
   'Confirmar local e contrato','Verificar equipamentos audiovisuais',
@@ -434,14 +494,15 @@ function restaurarBackup(event) {
       if (!dados.eventos) throw new Error('Arquivo inválido');
       if (!confirm('Restaurar backup?\n\nIsso substituirá todos os dados atuais.')) return;
       window.state = dados;
-      window.state.eventos    = window.state.eventos    || [];
-      window.state.orcPrev    = window.state.orcPrev    || [];
-      window.state.orcReal    = window.state.orcReal    || [];
-      window.state.atividades = window.state.atividades || [];
-      window.state.checklist  = window.state.checklist  || [];
+      window.state.eventos      = window.state.eventos      || [];
+      window.state.orcPrev      = window.state.orcPrev      || [];
+      window.state.orcReal      = window.state.orcReal      || [];
+      window.state.atividades   = window.state.atividades   || [];
+      window.state.checklist    = window.state.checklist    || [];
+      window.state.fornecedores = window.state.fornecedores || [];
       window.save();
       closeModal('modal-backup');
-      renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist();
+      renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist(); renderFornecedores();
       showPage('eventos');
       alert('✅ Dados restaurados com sucesso!');
     } catch(err) {
@@ -472,10 +533,11 @@ function showPage(id) {
   document.getElementById('page-' + id).classList.add('active');
   var navEl = document.getElementById('nav-' + id);
   if (navEl) navEl.classList.add('active');
-  if (id === 'orcamento')   { populateEventSelects(); renderOrcamento(); }
-  if (id === 'dashboard')   renderDashboard();
-  if (id === 'atividades')  { populateAtivFiltros(); renderAtividades(); }
-  if (id === 'ferramentas') renderChecklist();
+  if (id === 'orcamento')    { populateEventSelects(); renderOrcamento(); }
+  if (id === 'dashboard')    renderDashboard();
+  if (id === 'atividades')   { populateAtivFiltros(); renderAtividades(); }
+  if (id === 'ferramentas')  renderChecklist();
+  if (id === 'fornecedores') renderFornecedores();
 }
 
 function openModal(id)  { populateEventSelects(); document.getElementById(id).style.display = 'flex'; }
@@ -692,6 +754,62 @@ function toggleChecklist(i) { window.state.checklist[i].ok=!window.state.checkli
 function removeChecklist(i) { window.state.checklist.splice(i,1); window.save(); renderChecklist(); }
 function addChecklist() { var inp=document.getElementById('checklist-input'),txt=inp.value.trim(); if(!txt) return; window.state.checklist.push({texto:txt,ok:false}); inp.value=''; window.save(); renderChecklist(); }
 
+// ==================== FORNECEDORES ====================
+function salvarFornecedor() {
+  var nome = document.getElementById('forn-nome').value.trim();
+  if (!nome) { alert('Informe o nome do fornecedor.'); return; }
+  window.state.fornecedores = window.state.fornecedores || [];
+  window.state.fornecedores.push({
+    nome:    nome,
+    tipo:    document.getElementById('forn-tipo').value,
+    cat:     document.getElementById('forn-cat').value,
+    tel:     document.getElementById('forn-tel').value,
+    email:   document.getElementById('forn-email').value,
+    contato: document.getElementById('forn-contato').value,
+    obs:     document.getElementById('forn-obs').value
+  });
+  window.save();
+  closeModal('modal-fornecedor');
+  ['forn-nome','forn-tel','forn-email','forn-contato','forn-obs'].forEach(function(id){ document.getElementById(id).value=''; });
+  renderFornecedores();
+}
+
+function excluirFornecedor(i) {
+  if (!confirm('Remover este fornecedor?')) return;
+  window.state.fornecedores.splice(i, 1);
+  window.save(); renderFornecedores();
+}
+
+function renderFornecedores() {
+  window.state.fornecedores = window.state.fornecedores || [];
+  var filtroTipo = document.getElementById('forn-filter-tipo') ? document.getElementById('forn-filter-tipo').value : '';
+  var w = document.getElementById('forn-table-wrap');
+  var lista = window.state.fornecedores.map(function(f,i){return{f:f,i:i};}).filter(function(x){
+    if (filtroTipo !== '' && x.f.tipo !== filtroTipo) return false;
+    return true;
+  });
+  if (!lista.length) {
+    w.innerHTML='<div class="empty-state"><i class="ti ti-address-book"></i>Nenhum fornecedor cadastrado.<br>Clique em "Novo fornecedor" para começar.</div>';
+    return;
+  }
+  var h='<table class="table"><thead><tr><th>Nome</th><th>Tipo</th><th>Categoria</th><th>Telefone</th><th>E-mail</th><th>Contato</th><th>Obs.</th><th></th></tr></thead><tbody>';
+  lista.forEach(function(x){
+    var f=x.f, i=x.i;
+    var tipoBadge = f.tipo==='Prestador de serviço' ? '<span class="badge badge-warning">Prestador</span>' : '<span class="badge badge-pink">Fornecedor</span>';
+    h+='<tr>';
+    h+='<td style="font-weight:700">'+f.nome+'</td>';
+    h+='<td>'+tipoBadge+'</td>';
+    h+='<td>'+f.cat+'</td>';
+    h+='<td>'+(f.tel||'—')+'</td>';
+    h+='<td>'+(f.email ? '<a href="mailto:'+f.email+'" style="color:#b5006e">'+f.email+'</a>' : '—')+'</td>';
+    h+='<td>'+(f.contato||'—')+'</td>';
+    h+='<td style="font-size:12px;color:#a0607a;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(f.obs||'')+'">'+(f.obs||'—')+'</td>';
+    h+='<td><button class="btn btn-danger btn-sm" onclick="excluirFornecedor('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></td>';
+    h+='</tr>';
+  });
+  w.innerHTML = h+'</tbody></table>';
+}
+
 // ==================== EXPORTAR CSV ====================
 function exportCSV(tipo) {
   var rows, filename;
@@ -764,11 +882,12 @@ async function loadFromFirestore() {
     const snap = await getDoc(DOC_REF);
     if (snap.exists() && snap.data().state) {
       const dados = JSON.parse(snap.data().state);
-      dados.eventos    = dados.eventos    || [];
-      dados.orcPrev    = dados.orcPrev    || [];
-      dados.orcReal    = dados.orcReal    || [];
-      dados.atividades = dados.atividades || [];
-      dados.checklist  = dados.checklist  || [];
+      dados.eventos      = dados.eventos      || [];
+      dados.orcPrev      = dados.orcPrev      || [];
+      dados.orcReal      = dados.orcReal      || [];
+      dados.atividades   = dados.atividades   || [];
+      dados.checklist    = dados.checklist    || [];
+      dados.fornecedores = dados.fornecedores || [];
       window.state = dados;
     }
     window.setSyncStatus('ok', 'Conectado');
@@ -787,11 +906,17 @@ async function loadFromFirestore() {
     window.save();
   }
 
+  // Garante array de fornecedores
+  if (!window.state.fornecedores) {
+    window.state.fornecedores = [];
+  }
+
   // Renderiza tudo
   renderEventos();
   renderAtividades();
   populateEventSelects();
   renderChecklist();
+  renderFornecedores();
 }
 
 loadFromFirestore();
