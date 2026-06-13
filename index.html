@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PinkEvent PRO V1.0</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fdf5f8; color: #1a1a1a; min-height: 100vh; }
+.app { display: flex; height: 100vh; }
+.sidebar { width: 215px; min-width: 215px; background: #fff; border-right: 1px solid #f0d6e0; padding: 1rem 0; display: flex; flex-direction: column; gap: 2px; }
+.sidebar-logo { padding: 0.5rem 1rem 1rem; border-bottom: 1px solid #f0d6e0; margin-bottom: 0.5rem; }
+.logo-title { font-size: 15px; font-weight: 700; color: #b5006e; display: flex; align-items: center; gap: 7px; }
+.logo-sub { font-size: 10px; color: #c97faa; margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 1rem; font-size: 13.5px; cursor: pointer; color: #a0607a; border-left: 3px solid transparent; transition: all 0.1s; }
+.nav-item:hover { background: #fdf0f5; color: #b5006e; }
+.nav-item.active { background: #fde8f2; color: #b5006e; font-weight: 600; border-left-color: #e0006e; }
+.nav-item i { font-size: 17px; }
+.nav-divider { border-top: 1px solid #f0d6e0; margin: 8px 0; }
+.main { flex: 1; overflow-y: auto; padding: 1.75rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.page { display: none; }
+.page.active { display: flex; flex-direction: column; gap: 1.25rem; }
+.page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.page-title { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid #e0b8cc; border-radius: 8px; font-size: 13px; cursor: pointer; background: #fff; color: #a0607a; font-family: inherit; transition: all 0.1s; }
+.btn:hover { background: #fdf0f5; border-color: #c97faa; }
+.btn-primary { background: #e0006e; color: #fff; border-color: #e0006e; }
+.btn-primary:hover { background: #b5006e; border-color: #b5006e; }
+.btn-danger { background: #fff; color: #A32D2D; border-color: #f5a0a0; }
+.btn-danger:hover { background: #FCEBEB; }
+.btn-backup { background: #fff; color: #b5006e; border: 1.5px solid #e0006e; font-weight: 600; }
+.btn-backup:hover { background: #fde8f2; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.card { background: #fff; border: 1px solid #f0d6e0; border-radius: 12px; padding: 1.25rem 1.5rem; }
+.card-title { font-size: 12px; font-weight: 700; color: #c97faa; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.metric { background: linear-gradient(135deg, #fdf0f5 0%, #fff5f9 100%); border-radius: 10px; padding: 1rem 1.25rem; border: 1px solid #f0d6e0; }
+.metric-label { font-size: 12px; color: #c97faa; margin-bottom: 4px; }
+.metric-value { font-size: 24px; font-weight: 700; color: #1a1a1a; }
+.metric-sub { font-size: 11px; color: #c0a0b0; margin-top: 2px; }
+.table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.table th { text-align: left; padding: 8px 12px; color: #c97faa; font-weight: 700; border-bottom: 1px solid #f0d6e0; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+.table td { padding: 11px 12px; border-bottom: 1px solid #fdf0f5; color: #1a1a1a; vertical-align: middle; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #fdf8fa; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 600; }
+.badge-success { background: #e6f4d7; color: #2d6a0a; }
+.badge-warning { background: #fff3d6; color: #8a5a00; }
+.badge-danger { background: #fde8e8; color: #a32d2d; }
+.badge-info { background: #fde8f2; color: #b5006e; }
+.badge-gray { background: #f3eff0; color: #7a6070; }
+.badge-pink { background: #fde8f2; color: #b5006e; }
+.modal-bg { position: fixed; inset: 0; background: rgba(80,0,40,0.35); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
+.modal { background: #fff; border-radius: 14px; padding: 1.75rem; width: 500px; max-width: 95vw; border: 1px solid #f0d6e0; box-shadow: 0 8px 32px rgba(180,0,110,0.10); }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 1.25rem; color: #b5006e; display: flex; align-items: center; gap: 8px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 12px; color: #a0607a; margin-bottom: 5px; display: block; font-weight: 600; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+input, select, textarea { width: 100%; padding: 8px 11px; font-size: 13.5px; border: 1px solid #e0b8cc; border-radius: 8px; background: #fff; color: #1a1a1a; font-family: inherit; transition: border 0.15s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #e0006e; box-shadow: 0 0 0 3px rgba(224,0,110,0.10); }
+textarea { resize: vertical; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; border-top: 1px solid #fde8f2; padding-top: 1rem; }
+.progress-bar { background: #fde8f2; border-radius: 99px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.3s; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: #c0a0b0; font-size: 13.5px; }
+.empty-state i { font-size: 36px; margin-bottom: 0.75rem; display: block; opacity: 0.4; color: #e0006e; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #fdf0f5; }
+.checklist-item:last-child { border-bottom: none; }
+/* BACKUP MODAL */
+.backup-option { border: 1.5px solid #f0d6e0; border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 12px; }
+.backup-option:hover { border-color: #e0006e; background: #fdf8fa; }
+.backup-option i { font-size: 24px; color: #e0006e; margin-top: 2px; flex-shrink: 0; }
+.backup-option-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+.backup-option-desc { font-size: 12px; color: #a0607a; }
+.backup-tag { display: inline-block; background: #e6f4d7; color: #2d6a0a; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+.restore-drop { border: 2px dashed #e0b8cc; border-radius: 10px; padding: 1.5rem; text-align: center; color: #a0607a; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.restore-drop:hover { border-color: #e0006e; background: #fdf8fa; }
+@media (max-width: 700px) {
+  .app { flex-direction: column; height: auto; }
+  .sidebar { width: 100%; min-width: 100%; flex-direction: row; flex-wrap: wrap; padding: 0.5rem; border-right: none; border-bottom: 1px solid #f0d6e0; }
+  .sidebar-logo { display: none; }
+  .nav-item { border-left: none; border-bottom: 2px solid transparent; padding: 7px 9px; font-size: 12px; }
+  .nav-item.active { border-left: none; border-bottom-color: #e0006e; background: transparent; }
+  .main { padding: 1rem; }
+  .two-col { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-title"><i class="ti ti-calendar-heart" style="color:#e0006e;font-size:20px"></i>PinkEvent</div>
+      <div class="logo-sub">PRO &nbsp;·&nbsp; V1.0</div>
+    </div>
+    <div class="nav-item active" onclick="showPage('eventos')" id="nav-eventos"><i class="ti ti-calendar"></i> Eventos</div>
+    <div class="nav-item" onclick="showPage('orcamento')" id="nav-orcamento"><i class="ti ti-receipt"></i> Orçamento</div>
+    <div class="nav-item" onclick="showPage('atividades')" id="nav-atividades"><i class="ti ti-checklist"></i> Atividades</div>
+    <div class="nav-item" onclick="showPage('dashboard')" id="nav-dashboard"><i class="ti ti-chart-bar"></i> Dashboard</div>
+    <div class="nav-item" onclick="showPage('ferramentas')" id="nav-ferramentas"><i class="ti ti-tools"></i> Ferramentas</div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" onclick="openModal('modal-backup')" style="color:#e0006e;font-weight:600"><i class="ti ti-database-export"></i> Backup / Restaurar</div>
+  </div>
+
+  <div class="main">
+
+    <!-- EVENTOS -->
+    <div class="page active" id="page-eventos">
+      <div class="page-header">
+        <span class="page-title">Eventos</span>
+        <div class="btn-group">
+          <button class="btn btn-backup" onclick="openModal('modal-backup')"><i class="ti ti-database-export"></i> Backup</button>
+          <button class="btn btn-primary" onclick="openModal('modal-evento')"><i class="ti ti-plus"></i> Novo evento</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="eventos-table-wrap">
+          <div class="empty-state"><i class="ti ti-calendar-off"></i>Nenhum evento cadastrado ainda.<br>Clique em "Novo evento" para começar.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORÇAMENTO -->
+    <div class="page" id="page-orcamento">
+      <div class="page-header">
+        <span class="page-title">Orçamento</span>
+        <div class="btn-group">
+          <button class="btn" onclick="openModal('modal-orc-prev')"><i class="ti ti-plus"></i> Previsto</button>
+          <button class="btn btn-primary" onclick="openModal('modal-orc-real')"><i class="ti ti-plus"></i> Realizado</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0.85rem 1.5rem;display:flex;align-items:center;gap:12px">
+        <span style="font-size:13px;color:#a0607a;white-space:nowrap">Filtrar por evento:</span>
+        <select id="orc-event-filter" onchange="renderOrcamento()" style="max-width:320px"></select>
+      </div>
+      <div class="two-col">
+        <div class="card"><div class="card-title">Previsto por categoria</div><div id="orc-prev-table"><div class="empty-state" style="padding:1.5rem 0"><i class="ti ti-file-invoice"></i>Sem itens previstos</div></div></div>
+        <div class="card"><div class="card-title">Realizado por categoria</div><div id="orc-real-table"><div class="empty-state" style="padding:1.5rem 0"><i class="ti ti-receipt-2"></i>Sem itens realizados</div></div></div>
+      </div>
+      <div class="card"><div class="card-title">Comparativo geral</div><div id="orc-summary"></div></div>
+    </div>
+
+    <!-- ATIVIDADES -->
+    <div class="page" id="page-atividades">
+      <div class="page-header">
+        <span class="page-title">Atividades</span>
+        <button class="btn btn-primary" onclick="openModal('modal-atividade')"><i class="ti ti-plus"></i> Nova atividade</button>
+      </div>
+      <div class="card" style="padding:0.85rem 1.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="font-size:13px;color:#a0607a">Filtrar:</span>
+        <select id="ativ-filter-ev" onchange="renderAtividades()" style="max-width:220px"><option value="">Todos os eventos</option></select>
+        <select id="ativ-filter-st" onchange="renderAtividades()" style="max-width:160px">
+          <option value="">Todos os status</option>
+          <option>Pendente</option><option>Em execução</option><option>Concluída</option><option>Em atraso</option>
+        </select>
+      </div>
+      <div class="card"><div id="ativ-table-wrap"><div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade cadastrada.</div></div></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page" id="page-dashboard">
+      <div class="page-header"><span class="page-title">Dashboard</span>
+        <button class="btn" onclick="renderDashboard()"><i class="ti ti-refresh"></i> Atualizar</button>
+      </div>
+      <div class="metric-grid" id="dash-metrics"></div>
+      <div class="two-col">
+        <div class="card"><div class="card-title">Atividades por status</div><div id="dash-ativ-status"></div></div>
+        <div class="card"><div class="card-title">Orçamento geral</div><div id="dash-orc-bar"></div></div>
+      </div>
+      <div class="card"><div class="card-title">Pendências e atrasos</div><div id="dash-ativ-list"></div></div>
+    </div>
+
+    <!-- FERRAMENTAS -->
+    <div class="page" id="page-ferramentas">
+      <div class="page-header"><span class="page-title">Ferramentas</span></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Exportar para Excel / CSV</div>
+          <p style="font-size:13px;color:#a0607a;margin-bottom:14px">Exporte os dados para usar no Excel, Google Sheets ou qualquer planilha.</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn" onclick="exportCSV('eventos')"><i class="ti ti-download"></i> Exportar eventos</button>
+            <button class="btn" onclick="exportCSV('orcamento')"><i class="ti ti-download"></i> Exportar orçamento</button>
+            <button class="btn" onclick="exportCSV('atividades')"><i class="ti ti-download"></i> Exportar atividades</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Relatório de desempenho</div>
+          <p style="font-size:13px;color:#a0607a;margin-bottom:14px">Resumo executivo do estado atual de todos os eventos.</p>
+          <button class="btn btn-primary" onclick="gerarRelatorio()"><i class="ti ti-report-analytics"></i> Gerar relatório</button>
+          <div id="rel-content" style="margin-top:12px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Checklist do evento</div>
+        <p style="font-size:13px;color:#a0607a;margin-bottom:14px">Itens essenciais a verificar antes do evento. Marque conforme avança.</p>
+        <div id="checklist-wrap"></div>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+          <input id="checklist-input" placeholder="Adicionar novo item..." onkeydown="if(event.key==='Enter')addChecklist()">
+          <button class="btn btn-primary btn-sm" onclick="addChecklist()"><i class="ti ti-plus"></i> Adicionar</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sobre o sistema</div>
+        <p style="font-size:13px;color:#a0607a;line-height:1.8">
+          <strong style="color:#b5006e">PinkEvent PRO V1.0</strong> salva todos os dados automaticamente no seu navegador.<br>
+          Use o botão <strong style="color:#b5006e">Backup / Restaurar</strong> na barra lateral para proteger seus dados e transferi-los entre computadores.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL BACKUP -->
+<div class="modal-bg" id="modal-backup" style="display:none" onclick="if(event.target===this)closeModal('modal-backup')">
+  <div class="modal" style="width:540px">
+    <div class="modal-title"><i class="ti ti-database-export"></i> Backup & Restauração</div>
+
+    <p style="font-size:13px;color:#a0607a;margin-bottom:16px">Escolha como deseja proteger seus dados:</p>
+
+    <!-- Opção 1: Download JSON -->
+    <div class="backup-option" onclick="backupJSON()">
+      <i class="ti ti-file-download"></i>
+      <div>
+        <div class="backup-option-title">Baixar arquivo de backup <span class="backup-tag">RECOMENDADO</span></div>
+        <div class="backup-option-desc">Salva um arquivo <strong>.json</strong> no seu computador com todos os dados. Para restaurar, use a opção abaixo. Funciona sem internet.</div>
+      </div>
+    </div>
+
+    <!-- Opção 2: Enviar por Gmail -->
+    <div class="backup-option" onclick="backupEmail('gmail')">
+      <i class="ti ti-mail"></i>
+      <div>
+        <div class="backup-option-title">Enviar por e-mail (Gmail)</div>
+        <div class="backup-option-desc">Abre o Gmail com os dados no corpo do e-mail. Você escolhe para quem enviar e clica em Enviar. Funciona como um e-mail comum.</div>
+      </div>
+    </div>
+
+    <!-- Opção 3: Enviar por Outlook -->
+    <div class="backup-option" onclick="backupEmail('outlook')">
+      <i class="ti ti-brand-windows"></i>
+      <div>
+        <div class="backup-option-title">Enviar por e-mail (Outlook / outros)</div>
+        <div class="backup-option-desc">Abre seu e-mail padrão (Outlook, Yahoo etc.) com os dados prontos para enviar. Basta clicar em Enviar.</div>
+      </div>
+    </div>
+
+    <div class="nav-divider" style="margin:14px 0"></div>
+
+    <!-- Restaurar -->
+    <div class="card-title" style="margin-bottom:10px">Restaurar dados de um backup</div>
+    <div class="restore-drop" onclick="document.getElementById('restore-input').click()">
+      <i class="ti ti-upload" style="font-size:28px;color:#e0006e;display:block;margin-bottom:6px"></i>
+      Clique aqui para selecionar o arquivo <strong>.json</strong> de backup<br>
+      <span style="font-size:11px;color:#c0a0b0;margin-top:4px;display:block">Atenção: os dados atuais serão substituídos pelos dados do backup.</span>
+    </div>
+    <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restaurarBackup(event)">
+
+    <div id="backup-msg" style="margin-top:10px;font-size:13px;display:none"></div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-backup')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EVENTO -->
+<div class="modal-bg" id="modal-evento" style="display:none" onclick="if(event.target===this)closeModal('modal-evento')">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-calendar-plus"></i>Cadastrar evento</div>
+    <div class="form-group"><label class="form-label">Nome do evento *</label><input id="ev-nome" placeholder="Ex: Casamento da Ana e Pedro"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Data de início</label><input id="ev-inicio" type="date"></div>
+      <div class="form-group"><label class="form-label">Data de término</label><input id="ev-fim" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Local</label><input id="ev-local" placeholder="Ex: Espaço de Eventos Rosé"></div>
+    <div class="form-group"><label class="form-label">Responsável</label><input id="ev-resp" placeholder="Nome do responsável"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Público estimado</label><input id="ev-publico" type="number" placeholder="Ex: 200"></div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="ev-status"><option>Planejamento</option><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição / observações</label><textarea id="ev-desc" rows="2" placeholder="Detalhes do evento..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-evento')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEvento()"><i class="ti ti-check"></i> Salvar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ORC PREVISTO -->
+<div class="modal-bg" id="modal-orc-prev" style="display:none" onclick="if(event.target===this)closeModal('modal-orc-prev')">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-file-invoice"></i>Orçamento previsto</div>
+    <div class="form-group"><label class="form-label">Evento *</label><select id="op-evento"></select></div>
+    <div class="form-group"><label class="form-label">Categoria *</label>
+      <select id="op-cat"><option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option><option>Outros</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor (R$) *</label><input id="op-valor" type="number" step="0.01" placeholder="0,00"></div>
+      <div class="form-group"><label class="form-label">Fornecedor</label><input id="op-forn" placeholder="Nome do fornecedor"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><input id="op-desc" placeholder="Detalhes do item..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-orc-prev')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarOrc('prev')"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ORC REALIZADO -->
+<div class="modal-bg" id="modal-orc-real" style="display:none" onclick="if(event.target===this)closeModal('modal-orc-real')">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-receipt-2"></i>Orçamento realizado</div>
+    <div class="form-group"><label class="form-label">Evento *</label><select id="or-evento"></select></div>
+    <div class="form-group"><label class="form-label">Categoria *</label>
+      <select id="or-cat"><option>Locação de espaço</option><option>Alimentação e bebidas</option><option>Audiovisual e TI</option><option>Decoração</option><option>Marketing e comunicação</option><option>Transporte e logística</option><option>Equipe e pessoal</option><option>Material gráfico</option><option>Brindes e presentes</option><option>Segurança</option><option>Limpeza e higiene</option><option>Outros</option></select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Valor pago (R$) *</label><input id="or-valor" type="number" step="0.01" placeholder="0,00"></div>
+      <div class="form-group"><label class="form-label">Data do pagamento</label><input id="or-data" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fornecedor</label><input id="or-forn" placeholder="Nome do fornecedor"></div>
+      <div class="form-group"><label class="form-label">Nota fiscal / recibo</label><input id="or-nf" placeholder="Nº ou referência"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descrição</label><input id="or-desc" placeholder="Detalhes do item..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-orc-real')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarOrc('real')"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ATIVIDADE -->
+<div class="modal-bg" id="modal-atividade" style="display:none" onclick="if(event.target===this)closeModal('modal-atividade')">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-circle-plus"></i>Cadastrar atividade</div>
+    <div class="form-group"><label class="form-label">Evento *</label><select id="at-evento"></select></div>
+    <div class="form-group"><label class="form-label">Descrição da atividade *</label><input id="at-nome" placeholder="Ex: Confirmar cardápio com fornecedor"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Responsável</label><input id="at-resp" placeholder="Nome..."></div>
+      <div class="form-group"><label class="form-label">Prazo</label><input id="at-prazo" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Prioridade</label>
+        <select id="at-prio"><option>Normal</option><option>Alta</option><option>Crítica</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="at-status"><option>Pendente</option><option>Em execução</option><option>Concluída</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Observações</label><textarea id="at-obs" rows="2" placeholder="Notas, links, referências..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-atividade')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarAtividade()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var APP_KEY = 'pinkevent_pro_v1';
+var state = { eventos: [], orcPrev: [], orcReal: [], atividades: [], checklist: [] };
+try { var s = localStorage.getItem(APP_KEY); if(s) state = JSON.parse(s); } catch(e) {}
+
+function save() { try { localStorage.setItem(APP_KEY, JSON.stringify(state)); } catch(e) { alert('Erro ao salvar.'); } }
+
+// ==================== BACKUP ====================
+function backupJSON() {
+  var data = { versao: '1.0', sistema: 'PinkEvent PRO', data: new Date().toISOString(), dados: state };
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+  a.href = url; a.download = 'PinkEvent_Backup_' + hoje + '.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showBackupMsg('✅ Backup baixado com sucesso! Guarde o arquivo em local seguro.', 'success');
+}
+
+function backupEmail(tipo) {
+  var hoje = new Date().toLocaleDateString('pt-BR');
+  var totalEv = state.eventos.length;
+  var totalAtiv = state.atividades.length;
+  var totalPrev = state.orcPrev.reduce(function(a,x){return a+x.valor;},0);
+  var totalReal = state.orcReal.reduce(function(a,x){return a+x.valor;},0);
+  var json = JSON.stringify(state);
+  // Limitar tamanho para não quebrar o mailto
+  var resumo = 'PinkEvent PRO V1.0 — Backup em ' + hoje + '\n\n'
+    + 'RESUMO:\n'
+    + '• Eventos: ' + totalEv + '\n'
+    + '• Atividades: ' + totalAtiv + '\n'
+    + '• Orçamento previsto: R$ ' + totalPrev.toFixed(2) + '\n'
+    + '• Orçamento realizado: R$ ' + totalReal.toFixed(2) + '\n\n'
+    + '--- DADOS COMPLETOS (cole em um arquivo .json para restaurar) ---\n\n'
+    + json.substring(0, 1800)
+    + (json.length > 1800 ? '\n\n[...dados truncados — use a opção "Baixar arquivo de backup" para backup completo]' : '');
+
+  var assunto = encodeURIComponent('PinkEvent PRO — Backup ' + hoje);
+  var corpo = encodeURIComponent(resumo);
+
+  var url;
+  if(tipo === 'gmail') {
+    url = 'https://mail.google.com/mail/?view=cm&su=' + assunto + '&body=' + corpo;
+    window.open(url, '_blank');
+  } else {
+    url = 'mailto:?subject=' + assunto + '&body=' + corpo;
+    window.location.href = url;
+  }
+  showBackupMsg('📧 Seu e-mail foi aberto. Complete o envio clicando em Enviar.', 'info');
+}
+
+function restaurarBackup(event) {
+  var file = event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var parsed = JSON.parse(e.target.result);
+      var dados = parsed.dados || parsed;
+      if(!dados.eventos) throw new Error('Arquivo inválido');
+      if(!confirm('Restaurar backup de ' + (parsed.data ? new Date(parsed.data).toLocaleDateString('pt-BR') : 'data desconhecida') + '?\n\nIsso substituirá todos os dados atuais.')) return;
+      state = dados;
+      save(); closeModal('modal-backup');
+      renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist();
+      showPage('eventos');
+      alert('✅ Dados restaurados com sucesso!');
+    } catch(err) {
+      showBackupMsg('❌ Arquivo inválido. Selecione um backup gerado pelo PinkEvent PRO.', 'danger');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function showBackupMsg(msg, tipo) {
+  var el = document.getElementById('backup-msg');
+  var colors = { success: '#e6f4d7', danger: '#fde8e8', info: '#fde8f2' };
+  var textColors = { success: '#2d6a0a', danger: '#a32d2d', info: '#b5006e' };
+  el.style.display = 'block';
+  el.style.background = colors[tipo] || '#fde8f2';
+  el.style.color = textColors[tipo] || '#b5006e';
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '8px';
+  el.style.border = '1px solid currentColor';
+  el.textContent = msg;
+}
+
+// ==================== NAVEGAÇÃO ====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  var navEl = document.getElementById('nav-' + id);
+  if(navEl) navEl.classList.add('active');
+  if(id === 'orcamento') { populateEventSelects(); renderOrcamento(); }
+  if(id === 'dashboard') renderDashboard();
+  if(id === 'atividades') { populateAtivFiltros(); renderAtividades(); }
+  if(id === 'ferramentas') renderChecklist();
+}
+
+function openModal(id) { populateEventSelects(); document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function populateEventSelects() {
+  ['op-evento','or-evento','at-evento','orc-event-filter'].forEach(function(sid) {
+    var sel = document.getElementById(sid); if(!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = state.eventos.length === 0 ? '<option value="">— Nenhum evento —</option>' : '';
+    state.eventos.forEach(function(ev, i) { var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o); });
+    if(cur !== '') sel.value = cur;
+  });
+}
+
+function populateAtivFiltros() {
+  var sel = document.getElementById('ativ-filter-ev');
+  sel.innerHTML = '<option value="">Todos os eventos</option>';
+  state.eventos.forEach(function(ev, i) { var o = document.createElement('option'); o.value = i; o.textContent = ev.nome; sel.appendChild(o); });
+}
+
+function fmtDate(d) { if(!d) return '—'; var p = d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function fmtBRL(v) { return 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+function statusBadge(s) {
+  var m = {'Planejamento':'badge-info','Em andamento':'badge-warning','Concluído':'badge-success','Cancelado':'badge-gray','Pendente':'badge-warning','Em execução':'badge-pink','Concluída':'badge-success','Em atraso':'badge-danger'};
+  return '<span class="badge '+(m[s]||'badge-gray')+'">'+s+'</span>';
+}
+
+function prioBadge(p) {
+  if(p==='Crítica') return '<span class="badge badge-danger">Crítica</span>';
+  if(p==='Alta') return '<span class="badge badge-warning">Alta</span>';
+  return '';
+}
+
+function getAtivStatus(at) {
+  if(at.status==='Concluída') return 'Concluída';
+  if(at.prazo) { var h=new Date(); h.setHours(0,0,0,0); if(new Date(at.prazo+'T00:00:00')<h) return 'Em atraso'; }
+  return at.status;
+}
+
+// ==================== EVENTOS ====================
+function salvarEvento() {
+  var nome = document.getElementById('ev-nome').value.trim();
+  if(!nome) { alert('Informe o nome do evento.'); return; }
+  state.eventos.push({ nome:nome, inicio:document.getElementById('ev-inicio').value, fim:document.getElementById('ev-fim').value, local:document.getElementById('ev-local').value, resp:document.getElementById('ev-resp').value, status:document.getElementById('ev-status').value, publico:document.getElementById('ev-publico').value, desc:document.getElementById('ev-desc').value });
+  save(); closeModal('modal-evento');
+  ['ev-nome','ev-inicio','ev-fim','ev-local','ev-resp','ev-publico','ev-desc'].forEach(function(id){ document.getElementById(id).value=''; });
+  renderEventos();
+}
+
+function excluirEvento(i) {
+  if(!confirm('Excluir "'+state.eventos[i].nome+'"?\n\nOrçamentos e atividades vinculados também serão removidos.')) return;
+  state.orcPrev = state.orcPrev.filter(function(x){return x.eventoIdx!==i;});
+  state.orcReal = state.orcReal.filter(function(x){return x.eventoIdx!==i;});
+  state.atividades = state.atividades.filter(function(x){return x.eventoIdx!==i;});
+  state.orcPrev.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
+  state.orcReal.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
+  state.atividades.forEach(function(x){if(x.eventoIdx>i)x.eventoIdx--;});
+  state.eventos.splice(i,1); save(); renderEventos();
+}
+
+function renderEventos() {
+  var w = document.getElementById('eventos-table-wrap');
+  if(!state.eventos.length) { w.innerHTML='<div class="empty-state"><i class="ti ti-calendar-off"></i>Nenhum evento cadastrado.<br>Clique em "Novo evento" para começar.</div>'; return; }
+  var h = '<table class="table"><thead><tr><th>Nome</th><th>Início</th><th>Término</th><th>Local</th><th>Responsável</th><th>Público</th><th>Status</th><th></th></tr></thead><tbody>';
+  state.eventos.forEach(function(ev,i){
+    h += '<tr><td style="font-weight:700">'+ev.nome+'</td><td>'+fmtDate(ev.inicio)+'</td><td>'+fmtDate(ev.fim)+'</td><td>'+ev.local+'</td><td>'+ev.resp+'</td><td>'+(ev.publico||'—')+'</td><td>'+statusBadge(ev.status)+'</td><td><button class="btn btn-danger btn-sm" onclick="excluirEvento('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></td></tr>';
+  });
+  w.innerHTML = h + '</tbody></table>';
+}
+
+// ==================== ORÇAMENTO ====================
+function salvarOrc(tipo) {
+  var pi = tipo==='prev'?'op':'or';
+  var evIdx = parseInt(document.getElementById(pi+'-evento').value);
+  var valor = parseFloat(document.getElementById(pi+'-valor').value);
+  if(isNaN(evIdx)||evIdx<0){alert('Selecione um evento.');return;}
+  if(!valor||isNaN(valor)||valor<=0){alert('Informe o valor.');return;}
+  var item = { eventoIdx:evIdx, cat:document.getElementById(pi+'-cat').value, valor:valor, forn:document.getElementById(pi+'-forn')?document.getElementById(pi+'-forn').value:'', desc:document.getElementById(pi+'-desc').value };
+  if(tipo==='real'){item.data=document.getElementById('or-data').value;item.nf=document.getElementById('or-nf').value;}
+  if(tipo==='prev') state.orcPrev.push(item); else state.orcReal.push(item);
+  save(); closeModal(tipo==='prev'?'modal-orc-prev':'modal-orc-real');
+  ['op-valor','op-forn','op-desc','or-valor','or-forn','or-desc','or-nf','or-data'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  renderOrcamento();
+}
+
+function removeOrc(tipo, gi) {
+  if(!confirm('Remover este item?')) return;
+  if(tipo==='prev') state.orcPrev.splice(gi,1); else state.orcReal.splice(gi,1);
+  save(); renderOrcamento();
+}
+
+function renderOrcamento() {
+  populateEventSelects();
+  var evIdx = parseInt(document.getElementById('orc-event-filter').value);
+  if(isNaN(evIdx)){document.getElementById('orc-prev-table').innerHTML='<div class="empty-state" style="padding:1rem 0">Cadastre um evento primeiro.</div>';document.getElementById('orc-real-table').innerHTML='';document.getElementById('orc-summary').innerHTML='';return;}
+  var prev = state.orcPrev.map(function(x,i){return{item:x,idx:i};}).filter(function(x){return x.item.eventoIdx===evIdx;});
+  var real = state.orcReal.map(function(x,i){return{item:x,idx:i};}).filter(function(x){return x.item.eventoIdx===evIdx;});
+  function tbl(items,tipo){
+    if(!items.length) return '<div class="empty-state" style="padding:1rem 0"><i class="ti ti-file-off"></i>Sem registros</div>';
+    var h='<table class="table"><thead><tr><th>Categoria</th><th>Fornecedor</th><th>Descrição</th><th>Valor</th><th></th></tr></thead><tbody>';
+    items.forEach(function(x){h+='<tr><td>'+x.item.cat+'</td><td style="color:#a0607a">'+(x.item.forn||'—')+'</td><td style="color:#a0607a">'+(x.item.desc||'—')+'</td><td style="font-weight:700">'+fmtBRL(x.item.valor)+'</td><td><button class="btn btn-sm" onclick="removeOrc(\''+tipo+'\','+x.idx+')" title="Remover"><i class="ti ti-trash"></i></button></td></tr>';});
+    return h+'</tbody></table>';
+  }
+  document.getElementById('orc-prev-table').innerHTML=tbl(prev,'prev');
+  document.getElementById('orc-real-table').innerHTML=tbl(real,'real');
+  var tP=prev.reduce(function(a,x){return a+x.item.valor;},0), tR=real.reduce(function(a,x){return a+x.item.valor;},0), dif=tR-tP, pct=tP>0?Math.round((tR/tP)*100):0;
+  var h='<div class="metric-grid" style="margin-bottom:1rem">';
+  h+='<div class="metric"><div class="metric-label">Total previsto</div><div class="metric-value">'+fmtBRL(tP)+'</div></div>';
+  h+='<div class="metric"><div class="metric-label">Total realizado</div><div class="metric-value">'+fmtBRL(tR)+'</div></div>';
+  h+='<div class="metric"><div class="metric-label">Variação</div><div class="metric-value" style="color:'+(dif>0?'#a32d2d':'#2d6a0a')+'">'+fmtBRL(Math.abs(dif))+'</div><div class="metric-sub">'+(dif>0?'▲ acima':'▼ dentro')+'</div></div>';
+  h+='<div class="metric"><div class="metric-label">% executado</div><div class="metric-value">'+pct+'%</div></div></div>';
+  if(tP>0||tR>0){
+    var cats={};
+    prev.forEach(function(x){cats[x.item.cat]=(cats[x.item.cat]||{p:0,r:0});cats[x.item.cat].p+=x.item.valor;});
+    real.forEach(function(x){if(!cats[x.item.cat])cats[x.item.cat]={p:0,r:0};cats[x.item.cat].r+=x.item.valor;});
+    h+='<table class="table"><thead><tr><th>Categoria</th><th>Previsto</th><th>Realizado</th><th>Diferença</th><th>Situação</th></tr></thead><tbody>';
+    Object.keys(cats).forEach(function(cat){var p=cats[cat].p,r=cats[cat].r,d=r-p;var sit=r>p?'<span class="badge badge-danger">Acima</span>':r<p?'<span class="badge badge-success">Abaixo</span>':'<span class="badge badge-pink">No limite</span>';h+='<tr><td>'+cat+'</td><td>'+fmtBRL(p)+'</td><td>'+fmtBRL(r)+'</td><td style="color:'+(d>0?'#a32d2d':'#2d6a0a')+'">'+(d>0?'+':'')+fmtBRL(d)+'</td><td>'+sit+'</td></tr>';});
+    h+='</tbody></table>';
+  } else { h+='<p style="font-size:13px;color:#a0607a">Cadastre valores para ver o comparativo.</p>'; }
+  document.getElementById('orc-summary').innerHTML=h;
+}
+
+// ==================== ATIVIDADES ====================
+function salvarAtividade() {
+  var nome=document.getElementById('at-nome').value.trim(); if(!nome){alert('Informe a atividade.');return;}
+  var evIdx=parseInt(document.getElementById('at-evento').value); if(isNaN(evIdx)){alert('Selecione um evento.');return;}
+  state.atividades.push({eventoIdx:evIdx,nome:nome,resp:document.getElementById('at-resp').value,prazo:document.getElementById('at-prazo').value,prio:document.getElementById('at-prio').value,status:document.getElementById('at-status').value,obs:document.getElementById('at-obs').value});
+  save(); closeModal('modal-atividade');
+  ['at-nome','at-resp','at-prazo','at-obs'].forEach(function(id){document.getElementById(id).value='';});
+  populateAtivFiltros(); renderAtividades();
+}
+
+function atualizarStatusAtiv(i,s){state.atividades[i].status=s;save();renderAtividades();}
+function excluirAtiv(i){if(!confirm('Remover esta atividade?'))return;state.atividades.splice(i,1);save();renderAtividades();}
+
+function renderAtividades() {
+  var fEv=document.getElementById('ativ-filter-ev')?document.getElementById('ativ-filter-ev').value:'';
+  var fSt=document.getElementById('ativ-filter-st')?document.getElementById('ativ-filter-st').value:'';
+  var w=document.getElementById('ativ-table-wrap');
+  var lista=state.atividades.map(function(at,i){return{at:at,i:i};}).filter(function(x){
+    if(fEv!==''&&x.at.eventoIdx!==parseInt(fEv))return false;
+    if(fSt!==''&&getAtivStatus(x.at)!==fSt)return false;
+    return true;
+  });
+  if(!lista.length){w.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade encontrada.</div>';return;}
+  var h='<table class="table"><thead><tr><th>Evento</th><th>Atividade</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead><tbody>';
+  lista.forEach(function(x){
+    var at=x.at,i=x.i,ev=state.eventos[at.eventoIdx]?state.eventos[at.eventoIdx].nome:'—',st=getAtivStatus(at);
+    h+='<tr><td style="font-size:12px;color:#a0607a;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+ev+'">'+ev+'</td><td style="font-weight:600">'+at.nome+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+prioBadge(at.prio)+'</td><td>'+statusBadge(st)+'</td><td><div style="display:flex;gap:4px">';
+    if(at.status==='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Em execução\')" title="Iniciar"><i class="ti ti-player-play"></i></button>';
+    if(at.status!=='Concluída')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Concluída\')" title="Concluir"><i class="ti ti-check"></i></button>';
+    if(at.status!=='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Pendente\')" title="Reabrir"><i class="ti ti-refresh"></i></button>';
+    h+='<button class="btn btn-sm" onclick="excluirAtiv('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></div></td></tr>';
+  });
+  w.innerHTML=h+'</tbody></table>';
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  var total=state.atividades.length,concluidas=state.atividades.filter(function(a){return a.status==='Concluída';}).length;
+  var emAtraso=state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;
+  var tP=state.orcPrev.reduce(function(a,x){return a+x.valor;},0),tR=state.orcReal.reduce(function(a,x){return a+x.valor;},0);
+  document.getElementById('dash-metrics').innerHTML=
+    '<div class="metric"><div class="metric-label">Eventos</div><div class="metric-value">'+state.eventos.length+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Atividades</div><div class="metric-value">'+total+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Concluídas</div><div class="metric-value" style="color:#2d6a0a">'+concluidas+'</div><div class="metric-sub">'+(total>0?Math.round((concluidas/total)*100)+'%':'')+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Em atraso</div><div class="metric-value" style="color:#a32d2d">'+emAtraso+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Previsto</div><div class="metric-value" style="font-size:16px">'+fmtBRL(tP)+'</div></div>'+
+    '<div class="metric"><div class="metric-label">Realizado</div><div class="metric-value" style="font-size:16px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+fmtBRL(tR)+'</div></div>';
+  var ss=[{l:'Pendente',c:'#b5006e'},{l:'Em execução',c:'#185FA5'},{l:'Concluída',c:'#2d6a0a'},{l:'Em atraso',c:'#a32d2d'}],sh='';
+  ss.forEach(function(s){var cnt=state.atividades.filter(function(a){return getAtivStatus(a)===s.l;}).length,pct=total>0?Math.round((cnt/total)*100):0;sh+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>'+s.l+'</span><span style="font-weight:700">'+cnt+' <span style="color:#c0a0b0;font-weight:400">('+pct+'%)</span></span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+s.c+'"></div></div></div>';});
+  document.getElementById('dash-ativ-status').innerHTML=sh||'<div class="empty-state" style="padding:1rem 0">Sem atividades</div>';
+  var oh='';
+  if(tP>0||tR>0){var mx=Math.max(tP,tR,1);oh='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Previsto</span><span style="font-weight:700">'+fmtBRL(tP)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tP/mx)*100)+'%;background:#b5006e"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Realizado</span><span style="font-weight:700">'+fmtBRL(tR)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tR/mx)*100)+'%;background:'+(tR>tP?'#a32d2d':'#2d6a0a')+'"></div></div></div><div style="margin-top:10px;font-size:13px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+(tR>tP?'▲ '+fmtBRL(tR-tP)+' acima do previsto':'▼ '+fmtBRL(tP-tR)+' dentro do previsto')+'</div>';}else{oh='<div class="empty-state" style="padding:1rem 0">Sem orçamento registrado</div>';}
+  document.getElementById('dash-orc-bar').innerHTML=oh;
+  var crit=state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso'||a.status==='Pendente';}).slice(0,8);
+  if(!crit.length){document.getElementById('dash-ativ-list').innerHTML='<div class="empty-state" style="padding:1rem 0"><i class="ti ti-circle-check" style="color:#2d6a0a;opacity:1"></i>Nenhuma pendência!</div>';}
+  else{var dh='<table class="table"><thead><tr><th>Atividade</th><th>Evento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>';crit.forEach(function(at){dh+='<tr><td style="font-weight:600">'+at.nome+'</td><td style="font-size:12px;color:#a0607a">'+(state.eventos[at.eventoIdx]?state.eventos[at.eventoIdx].nome:'—')+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+statusBadge(getAtivStatus(at))+'</td></tr>';});document.getElementById('dash-ativ-list').innerHTML=dh+'</tbody></table>';}
+}
+
+// ==================== CHECKLIST ====================
+var defaultChecklist=['Confirmar local e contrato','Verificar equipamentos audiovisuais','Enviar convites e confirmações','Definir cardápio e fornecedor de alimentação','Preparar material gráfico','Testar tecnologia e internet no local','Briefing da equipe','Contratar segurança e recepcionistas','Confirmar transporte e estacionamento','Preparar credenciais dos participantes'];
+if(!state.checklist.length){state.checklist=defaultChecklist.map(function(t){return{texto:t,ok:false};});save();}
+
+function renderChecklist(){
+  var done=state.checklist.filter(function(x){return x.ok;}).length,total=state.checklist.length,pct=total>0?Math.round((done/total)*100):0;
+  var h='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span style="color:#a0607a">Progresso</span><span style="font-weight:700;color:#b5006e">'+done+'/'+total+' ('+pct+'%)</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:#e0006e"></div></div></div>';
+  state.checklist.forEach(function(item,i){h+='<div class="checklist-item"><input type="checkbox" '+(item.ok?'checked':'')+' onchange="toggleChecklist('+i+')" style="width:17px;height:17px;cursor:pointer;accent-color:#e0006e"><span style="font-size:13.5px;flex:1;'+(item.ok?'text-decoration:line-through;color:#c0a0b0':'')+'">'+item.texto+'</span><button class="btn btn-sm" onclick="removeChecklist('+i+')" title="Remover"><i class="ti ti-x"></i></button></div>';});
+  document.getElementById('checklist-wrap').innerHTML=h;
+}
+
+function toggleChecklist(i){state.checklist[i].ok=!state.checklist[i].ok;save();renderChecklist();}
+function removeChecklist(i){state.checklist.splice(i,1);save();renderChecklist();}
+function addChecklist(){var inp=document.getElementById('checklist-input'),txt=inp.value.trim();if(!txt)return;state.checklist.push({texto:txt,ok:false});inp.value='';save();renderChecklist();}
+
+// ==================== EXPORTAR CSV ====================
+function exportCSV(tipo) {
+  var rows,filename;
+  if(tipo==='eventos'){rows=[['Nome','Início','Término','Local','Responsável','Público estimado','Status','Descrição']];state.eventos.forEach(function(ev){rows.push([ev.nome,ev.inicio,ev.fim,ev.local,ev.resp,ev.publico,ev.status,ev.desc]);});filename='PinkEvent_Eventos.csv';}
+  else if(tipo==='orcamento'){rows=[['Evento','Tipo','Categoria','Fornecedor','Valor','Descrição','Data','NF/Recibo']];state.orcPrev.forEach(function(x){rows.push([state.eventos[x.eventoIdx]?state.eventos[x.eventoIdx].nome:'','Previsto',x.cat,x.forn||'',x.valor,x.desc,'','']);});state.orcReal.forEach(function(x){rows.push([state.eventos[x.eventoIdx]?state.eventos[x.eventoIdx].nome:'','Realizado',x.cat,x.forn||'',x.valor,x.desc,x.data||'',x.nf||'']);});filename='PinkEvent_Orcamento.csv';}
+  else{rows=[['Evento','Atividade','Responsável','Prazo','Prioridade','Status','Observações']];state.atividades.forEach(function(at){rows.push([state.eventos[at.eventoIdx]?state.eventos[at.eventoIdx].nome:'',at.nome,at.resp,at.prazo,at.prio,at.status,at.obs]);});filename='PinkEvent_Atividades.csv';}
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+(c||'').toString().replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+// ==================== RELATÓRIO ====================
+function gerarRelatorio(){
+  var total=state.atividades.length,conc=state.atividades.filter(function(a){return a.status==='Concluída';}).length,atras=state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;
+  var tP=state.orcPrev.reduce(function(a,x){return a+x.valor;},0),tR=state.orcReal.reduce(function(a,x){return a+x.valor;},0),dif=tR-tP;
+  var h='<div style="background:#fdf0f5;border:1px solid #f0d6e0;border-radius:10px;padding:1rem;margin-top:12px;font-size:13.5px;line-height:2">';
+  h+='<strong style="color:#b5006e">Relatório gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</strong><br>';
+  h+='<hr style="border:none;border-top:1px solid #f0d6e0;margin:8px 0">';
+  h+='📅 Eventos: <strong>'+state.eventos.length+'</strong><br>';
+  h+='✅ Atividades concluídas: <strong>'+conc+' de '+total+'</strong> ('+(total>0?Math.round((conc/total)*100):0)+'%)<br>';
+  h+='⚠️ Em atraso: <strong style="color:#a32d2d">'+atras+'</strong><br>';
+  h+='💰 Previsto: <strong>'+fmtBRL(tP)+'</strong><br>';
+  h+='💸 Realizado: <strong>'+fmtBRL(tR)+'</strong><br>';
+  if(tP>0)h+='📊 Variação: <strong style="color:'+(dif>0?'#a32d2d':'#2d6a0a')+'">'+(dif>0?'▲ +':'')+fmtBRL(dif)+' '+(dif>0?'(acima)':'(dentro do previsto)')+'</strong><br>';
+  h+='</div>';
+  document.getElementById('rel-content').innerHTML=h;
+}
+
+// Init
+renderEventos(); renderAtividades(); populateEventSelects(); renderChecklist();
+</script>
+</body>
+</html>
