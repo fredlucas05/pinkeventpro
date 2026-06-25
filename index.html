@@ -601,7 +601,6 @@ window.setSyncStatus = function(status, text) {
 function doLogin() {
   var loginVal = document.getElementById('login-user').value.trim().toLowerCase();
   var senhaVal = document.getElementById('login-pass').value;
-  // Mescla DEFAULT_USERS com Firebase: DEFAULT tem prioridade para senhas padrão
   var base = {};
   DEFAULT_USERS.forEach(function(u){ base[u.login] = u; });
   (window.state.usuarios || []).forEach(function(u){ base[u.login] = u; });
@@ -847,7 +846,37 @@ function renderOrcamento() {
 function salvarAtividade(){var nome=document.getElementById('at-nome').value.trim();if(!nome){alert('Informe a atividade.');return;}var evIdx=parseInt(document.getElementById('at-evento').value);if(isNaN(evIdx)){alert('Selecione um evento.');return;}window.state.atividades.push({eventoIdx:evIdx,nome:nome,resp:document.getElementById('at-resp').value,prazo:document.getElementById('at-prazo').value,prio:document.getElementById('at-prio').value,status:document.getElementById('at-status').value,obs:document.getElementById('at-obs').value});window.save();closeModal('modal-atividade');['at-nome','at-resp','at-prazo','at-obs'].forEach(function(id){document.getElementById(id).value='';});populateAtivFiltros();renderAtividades();}
 function atualizarStatusAtiv(i,s){window.state.atividades[i].status=s;window.save();renderAtividades();}
 function excluirAtiv(i){if(!confirm('Remover?'))return;window.state.atividades.splice(i,1);window.save();renderAtividades();}
-function renderAtividades(){var fEv=document.getElementById('ativ-filter-ev')?document.getElementById('ativ-filter-ev').value:'';var fSt=document.getElementById('ativ-filter-st')?document.getElementById('ativ-filter-st').value:'';var w=document.getElementById('ativ-table-wrap');var lista=window.state.atividades.map(function(at,i){return{at:at,i:i};}).filter(function(x){if(fEv!==''&&x.at.eventoIdx!==parseInt(fEv))return false;if(fSt!==''&&getAtivStatus(x.at)!==fSt)return false;return true;});if(!lista.length){w.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade encontrada.</div>';return;}var h='<table class="table"><thead><tr><th>Evento</th><th>Atividade</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead><tbody>';lista.forEach(function(x){var at=x.at,i=x.i,ev=window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—',st=getAtivStatus(at);h+='<tr><td style="font-size:12px;color:#a0607a;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+ev+'">'+ev+'</td><td style="font-weight:600">'+at.nome+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+prioBadge(at.prio)+'</td><td>'+statusBadge(st)+'</td><td><div style="display:flex;gap:4px">';if(at.status==='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Em execução\')" title="Iniciar"><i class="ti ti-player-play"></i></button>';if(at.status!=='Concluída')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Concluída\')" title="Concluir"><i class="ti ti-check"></i></button>';if(at.status!=='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Pendente\')" title="Reabrir"><i class="ti ti-refresh"></i></button>';h+='<button class="btn btn-sm" onclick="excluirAtiv('+i+')" title="Excluir"><i class="ti ti-trash"></i></button></div></td></tr>';});w.innerHTML=h+'</tbody></table>';}
+
+function renderAtividades(){
+  var fEv=document.getElementById('ativ-filter-ev')?document.getElementById('ativ-filter-ev').value:'';
+  var fSt=document.getElementById('ativ-filter-st')?document.getElementById('ativ-filter-st').value:'';
+  var w=document.getElementById('ativ-table-wrap');
+  var lista=window.state.atividades.map(function(at,i){return{at:at,i:i};}).filter(function(x){
+    if(fEv!==''&&x.at.eventoIdx!==parseInt(fEv))return false;
+    if(fSt!==''&&getAtivStatus(x.at)!==fSt)return false;
+    return true;
+  });
+  if(!lista.length){w.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i>Nenhuma atividade encontrada.</div>';return;}
+  var h='<table class="table"><thead><tr><th>Evento</th><th>Atividade</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Observações</th><th>Ações</th></tr></thead><tbody>';
+  lista.forEach(function(x){
+    var at=x.at,i=x.i,ev=window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—',st=getAtivStatus(at);
+    h+='<tr>';
+    h+='<td style="font-size:12px;color:#a0607a;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+ev+'">'+ev+'</td>';
+    h+='<td style="font-weight:600">'+at.nome+'</td>';
+    h+='<td>'+(at.resp||'—')+'</td>';
+    h+='<td>'+fmtDate(at.prazo)+'</td>';
+    h+='<td>'+prioBadge(at.prio)+'</td>';
+    h+='<td>'+statusBadge(st)+'</td>';
+    h+='<td style="font-size:12px;color:#a0607a;max-width:180px;white-space:pre-wrap;word-break:break-word">'+(at.obs||'—')+'</td>';
+    h+='<td><div style="display:flex;gap:4px">';
+    if(at.status==='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Em execução\')" title="Iniciar"><i class="ti ti-player-play"></i></button>';
+    if(at.status!=='Concluída')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Concluída\')" title="Concluir"><i class="ti ti-check"></i></button>';
+    if(at.status!=='Pendente')h+='<button class="btn btn-sm" onclick="atualizarStatusAtiv('+i+',\'Pendente\')" title="Reabrir"><i class="ti ti-refresh"></i></button>';
+    h+='<button class="btn btn-sm" onclick="excluirAtiv('+i+')" title="Excluir"><i class="ti ti-trash"></i></button>';
+    h+='</div></td></tr>';
+  });
+  w.innerHTML=h+'</tbody></table>';
+}
 
 // ── DASHBOARD ──
 function renderDashboard(){var total=window.state.atividades.length,concluidas=window.state.atividades.filter(function(a){return a.status==='Concluída';}).length;var emAtraso=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso';}).length;var tP=window.state.orcPrev.reduce(function(a,x){return a+x.valor;},0),tR=window.state.orcReal.reduce(function(a,x){return a+x.valor;},0);document.getElementById('dash-metrics').innerHTML='<div class="metric"><div class="metric-label">Eventos</div><div class="metric-value">'+window.state.eventos.length+'</div></div><div class="metric"><div class="metric-label">Atividades</div><div class="metric-value">'+total+'</div></div><div class="metric"><div class="metric-label">Concluídas</div><div class="metric-value" style="color:#2d6a0a">'+concluidas+'</div><div class="metric-sub">'+(total>0?Math.round((concluidas/total)*100)+'%':'')+'</div></div><div class="metric"><div class="metric-label">Em atraso</div><div class="metric-value" style="color:#a32d2d">'+emAtraso+'</div></div><div class="metric"><div class="metric-label">Previsto</div><div class="metric-value" style="font-size:16px">'+fmtBRL(tP)+'</div></div><div class="metric"><div class="metric-label">Realizado</div><div class="metric-value" style="font-size:16px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+fmtBRL(tR)+'</div></div>';var ss=[{l:'Pendente',c:'#b5006e'},{l:'Em execução',c:'#185FA5'},{l:'Concluída',c:'#2d6a0a'},{l:'Em atraso',c:'#a32d2d'}],sh='';ss.forEach(function(s){var cnt=window.state.atividades.filter(function(a){return getAtivStatus(a)===s.l;}).length,pct=total>0?Math.round((cnt/total)*100):0;sh+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>'+s.l+'</span><span style="font-weight:700">'+cnt+' <span style="color:#c0a0b0;font-weight:400">('+pct+'%)</span></span></div><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+s.c+'"></div></div></div>';});document.getElementById('dash-ativ-status').innerHTML=sh||'<div class="empty-state" style="padding:1rem 0">Sem atividades</div>';var oh='';if(tP>0||tR>0){var mx=Math.max(tP,tR,1);oh='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Previsto</span><span style="font-weight:700">'+fmtBRL(tP)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tP/mx)*100)+'%;background:#b5006e"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Realizado</span><span style="font-weight:700">'+fmtBRL(tR)+'</span></div><div class="progress-bar"><div class="progress-fill" style="width:'+Math.round((tR/mx)*100)+'%;background:'+(tR>tP?'#a32d2d':'#2d6a0a')+'"></div></div></div><div style="margin-top:10px;font-size:13px;color:'+(tR>tP?'#a32d2d':'#2d6a0a')+'">'+(tR>tP?'▲ '+fmtBRL(tR-tP)+' acima do previsto':'▼ '+fmtBRL(tP-tR)+' dentro do previsto')+'</div>';}else{oh='<div class="empty-state" style="padding:1rem 0">Sem orçamento registrado</div>';}document.getElementById('dash-orc-bar').innerHTML=oh;var crit=window.state.atividades.filter(function(a){return getAtivStatus(a)==='Em atraso'||a.status==='Pendente';}).slice(0,8);if(!crit.length){document.getElementById('dash-ativ-list').innerHTML='<div class="empty-state" style="padding:1rem 0"><i class="ti ti-circle-check" style="color:#2d6a0a;opacity:1"></i>Nenhuma pendência!</div>';}else{var dh='<table class="table"><thead><tr><th>Atividade</th><th>Evento</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>';crit.forEach(function(at){dh+='<tr><td style="font-weight:600">'+at.nome+'</td><td style="font-size:12px;color:#a0607a">'+(window.state.eventos[at.eventoIdx]?window.state.eventos[at.eventoIdx].nome:'—')+'</td><td>'+at.resp+'</td><td>'+fmtDate(at.prazo)+'</td><td>'+statusBadge(getAtivStatus(at))+'</td></tr>';});document.getElementById('dash-ativ-list').innerHTML=dh+'</tbody></table>';}}
@@ -875,7 +904,7 @@ function gerarRelatorio(){var total=window.state.atividades.length,conc=window.s
 var _despPrev = [];
 var _despReal = [];
 var _despCats = ['Aluguel do teatro','Tecidos','Acessórios','Figurinos M.O Roupa Repolho','Figurinos M.O Roupa Bandeja','Cenografia','Iluminação','Equipe técnica','Fotografia / Filmagem','Divulgação','Designer','Materiais de apoio','Transporte','Faxineira','Presentes','E-CAD','Lanches','Ingresso','Outros'];
-var _precAtivo = null; // índice da precificação carregada
+var _precAtivo = null;
 
 function novaPrec() {
   _precAtivo = null;
@@ -929,60 +958,40 @@ function renderDespesas() {
 function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
 function calcPrec() {
-  var pb  = g('prec-pb');   // participantes bandeja
-  var pr  = g('prec-pr');   // participantes repolho
-  var mob = g('prec-mob');  // M.O bandeja (custo por pessoa, NÃO entra no custo fixo)
-  var mor = g('prec-mor');  // M.O repolho (custo por pessoa, NÃO entra no custo fixo)
-  var imp = g('prec-imp');  // percentual de imposto (ex: 0.10)
-  var mkb = g('prec-mkb'); // margem markup bandeja (ex: 0.695)
-  var mkr = g('prec-mkr'); // margem markup repolho (ex: 0.765)
+  var pb  = g('prec-pb');
+  var pr  = g('prec-pr');
+  var mob = g('prec-mob');
+  var mor = g('prec-mor');
+  var imp = g('prec-imp');
+  var mkb = g('prec-mkb');
+  var mkr = g('prec-mkr');
 
   var totalAlunos = pb + pr;
 
-  // ── CUSTO FIXO: soma TODAS as despesas previstas
-  //    EXCETO "Figurinos M.O Roupa Repolho" e "Figurinos M.O Roupa Bandeja"
-  //    (pois esses são o M.O já informado nos campos mob/mor)
   var _moExcluidos = ['Figurinos M.O Roupa Repolho', 'Figurinos M.O Roupa Bandeja'];
   var custoFixo = _despPrev.reduce(function(a, x) {
     if (_moExcluidos.indexOf(x.cat) !== -1) return a;
     return a + (x.valor || 0);
   }, 0);
 
-  // ── CCP BANDEJA = (Custo Fixo / Total Alunos) + M.O Bandeja
   var ccpBandeja = totalAlunos > 0 ? (custoFixo / totalAlunos) + mob : 0;
-
-  // ── CCP REPOLHO = (Custo Fixo / Total Alunos) + M.O Repolho
   var ccpRepolho = totalAlunos > 0 ? (custoFixo / totalAlunos) + mor : 0;
 
-  // ── PREÇO COM MARGEM BANDEJA = CCP Bandeja × Markup Bandeja + CCP Bandeja
   var precComMargemBandeja = ccpBandeja * mkb + ccpBandeja;
-
-  // ── PREÇO COM MARGEM REPOLHO = CCP Repolho × Markup Repolho + CCP Repolho
   var precComMargemRepolho = ccpRepolho * mkr + ccpRepolho;
 
-  // ── IMPOSTO BANDEJA = Preço com Margem Bandeja × Participantes Bandeja × % Imposto
   var impostoBandeja = precComMargemBandeja * pb * imp;
-
-  // ── IMPOSTO REPOLHO = Preço com Margem Repolho × Participantes Repolho × % Imposto
   var impostoRepolho = precComMargemRepolho * pr * imp;
 
-  // ── IMPOSTO P/P BANDEJA = Imposto Bandeja / Participantes Bandeja
   var impostoPPBandeja = pb > 0 ? impostoBandeja / pb : 0;
-
-  // ── IMPOSTO P/P REPOLHO = Imposto Repolho / Participantes Repolho
   var impostoPPRepolho = pr > 0 ? impostoRepolho / pr : 0;
 
-  // ── PREÇO FINAL BANDEJA = Preço com Margem Bandeja + Imposto P/P Bandeja
   var precFinalBandeja = precComMargemBandeja + impostoPPBandeja;
-
-  // ── PREÇO FINAL REPOLHO = Preço com Margem Repolho + Imposto P/P Repolho
   var precFinalRepolho = precComMargemRepolho + impostoPPRepolho;
 
-  // ── MARGEM REAL
   var margemRealBandeja = precFinalBandeja > 0 ? (precFinalBandeja - ccpBandeja) / precFinalBandeja : 0;
   var margemRealRepolho = precFinalRepolho > 0 ? (precFinalRepolho - ccpRepolho) / precFinalRepolho : 0;
 
-  // ── Preços de tabela (usuário pode sobrescrever ou usar o calculado)
   var pfb = g('prec-pf-bandeja') || precFinalBandeja;
   var pfr = g('prec-pf-repolho') || precFinalRepolho;
   var p2d = g('prec-2d');
@@ -990,12 +999,10 @@ function calcPrec() {
   var x3r = g('prec-3xr');
   var x3d = g('prec-3x2d');
 
-  // ── Receita e lucro estimados
   var receitaTotal  = (pfb * pb) + (pfr * pr);
   var despReal      = _despReal.reduce(function(a,x){ return a+(x.valor||0); }, 0);
   var lucroEstimado = receitaTotal - custoFixo;
 
-  // ── Renderiza painel de resultado ──
   var rh = '';
   rh += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
   rh += '<div class="prec-val-box"><div class="metric-label">Custo fixo</div><div class="metric-value" style="font-size:17px">'+fmtBRL(custoFixo)+'</div></div>';
@@ -1015,14 +1022,12 @@ function calcPrec() {
   rh += '<div style="margin-top:8px" class="prec-val-box"><div class="metric-label">Lucro estimado (receita − custo fixo)</div><div class="metric-value" style="font-size:20px">'+fmtBRL(lucroEstimado)+'</div></div>';
   document.getElementById('prec-resultado-content').innerHTML = rh;
 
-  // ── Tabela de preços ──
   var th = '<table class="table"><thead><tr><th>Modalidade</th><th>Bandeja</th><th>Repolho</th><th>2 Danças</th></tr></thead><tbody>';
   th += '<tr class="highlight-row"><td>À vista</td><td>'+fmtBRL(pfb)+'</td><td>'+fmtBRL(pfr)+'</td><td>'+(p2d>0?fmtBRL(p2d):'—')+'</td></tr>';
   if (x3b>0||x3r>0||x3d>0) { th += '<tr><td>3x</td><td>'+(x3b>0?fmtBRL(x3b)+'/mês':'—')+'</td><td>'+(x3r>0?fmtBRL(x3r)+'/mês':'—')+'</td><td>'+(x3d>0?fmtBRL(x3d)+'/mês':'—')+'</td></tr>'; }
   th += '</tbody></table>';
   document.getElementById('prec-tabela-precos').innerHTML = th;
 
-  // ── Comparativo de despesas ──
   var allCats = {};
   _despPrev.forEach(function(d){ allCats[d.cat] = (allCats[d.cat]||{p:0,r:0}); allCats[d.cat].p += d.valor||0; });
   _despReal.forEach(function(d){ if(!allCats[d.cat]) allCats[d.cat]={p:0,r:0}; allCats[d.cat].r += d.valor||0; });
@@ -1185,7 +1190,6 @@ async function loadFromFirestore() {
 
   ['eventos','orcPrev','orcReal','atividades','checklist','fornecedores','precificacoes','usuarios'].forEach(function(k){ window.state[k] = window.state[k] || []; });
 
-  // Inicializa tela de precificação com despesas padrão
   novaPrec();
 
   renderEventos();
